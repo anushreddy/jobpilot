@@ -1,0 +1,230 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id @default(cuid())
+  name           String?
+  email          String    @unique
+  emailVerified  DateTime?
+  image          String?
+  hashedPassword String?
+  plan           Plan      @default(FREE)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  accounts     Account[]
+  sessions     Session[]
+  preferences  UserPreferences?
+  resume       Resume?
+  applications Application[]
+  autoApply    AutoApplyConfig?
+  linkedAccounts LinkedAccount[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model UserPreferences {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  domain          String?
+  roleTypes       String[]
+  skills          String[]
+  locations       String[]
+  remoteOnly      Boolean  @default(false)
+  salaryMin       Int?
+  salaryMax       Int?
+  experienceLevel String[]
+  jobTypes        String[]
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model Resume {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  fileName    String
+  content     String   @db.Text
+  parsedData  Json?
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tailoredResumes TailoredResume[]
+
+  @@map("resumes")
+}
+
+model TailoredResume {
+  id          String   @id @default(cuid())
+  resumeId    String
+  jobId       String
+  content     String   @db.Text
+  createdAt   DateTime @default(now())
+
+  resume      Resume      @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  job         Job         @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@map("tailored_resumes")
+}
+
+model Job {
+  id           String   @id @default(cuid())
+  externalId   String?
+  title        String
+  company      String
+  companyLogo  String?
+  location     String
+  locationType String   @default("onsite")
+  salary       String?
+  salaryMin    Int?
+  salaryMax    Int?
+  description  String   @db.Text
+  requirements String[]
+  skills       String[]
+  platform     Platform
+  platformUrl  String
+  postedAt     DateTime
+  createdAt    DateTime @default(now())
+  isActive     Boolean  @default(true)
+
+  applications    Application[]
+  tailoredResumes TailoredResume[]
+
+  @@index([title, company])
+  @@map("jobs")
+}
+
+model Application {
+  id              String            @id @default(cuid())
+  userId          String
+  jobId           String
+  status          ApplicationStatus @default(APPLIED)
+  matchScore      Int?
+  autoApplied     Boolean           @default(false)
+  resumeUsed      String?           @db.Text
+  coverLetter     String?           @db.Text
+  notes           String?
+  appliedAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  interviewDate   DateTime?
+  offerAmount     Int?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId])
+  @@map("applications")
+}
+
+model AutoApplyConfig {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  enabled         Boolean  @default(false)
+  dailyLimit      Int      @default(10)
+  minMatchScore   Int      @default(70)
+  platforms       String[]
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("auto_apply_configs")
+}
+
+model LinkedAccount {
+  id           String          @id @default(cuid())
+  userId       String
+  platform     LinkedPlatform
+  username     String?
+  accessToken  String?         @db.Text
+  refreshToken String?         @db.Text
+  expiresAt    DateTime?
+  isActive     Boolean         @default(true)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platform])
+  @@map("linked_accounts")
+}
+
+enum Plan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum Platform {
+  LINKEDIN
+  INDEED
+  GLASSDOOR
+  WELLFOUND
+  LEVER
+  GREENHOUSE
+  WORKDAY
+  OTHER
+}
+
+enum LinkedPlatform {
+  LINKEDIN
+  INDEED
+  GLASSDOOR
+}
+
+enum ApplicationStatus {
+  SAVED
+  APPLIED
+  UNDER_REVIEW
+  INTERVIEW
+  OFFER
+  REJECTED
+  WITHDRAWN
+}

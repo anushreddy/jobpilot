@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* ── Dark theme (default) ── */
+  :root,
+  .dark {
+    --background: 240 20% 6%;
+    --foreground: 210 40% 98%;
+    --card: 240 18% 9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 240 18% 9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 263 70% 60%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 240 15% 14%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 240 15% 14%;
+    --muted-foreground: 215 20% 55%;
+    --accent: 263 70% 60%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 240 15% 16%;
+    --input: 240 15% 14%;
+    --ring: 263 70% 60%;
+    --radius: 0.75rem;
+    --chart-1: 263 70% 60%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
+
+  /* ── Light theme ── */
+  .light {
+    --background: 240 20% 97%;
+    --foreground: 240 15% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 15% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 15% 12%;
+    --primary: 263 65% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 10% 92%;
+    --secondary-foreground: 240 15% 20%;
+    --muted: 240 10% 92%;
+    --muted-foreground: 240 8% 46%;
+    --accent: 263 65% 55%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 10% 86%;
+    --input: 240 10% 92%;
+    --ring: 263 65% 55%;
+    --radius: 0.75rem;
+    --chart-1: 263 65% 55%;
+    --chart-2: 173 58% 35%;
+    --chart-3: 197 37% 30%;
+    --chart-4: 43 74% 50%;
+    --chart-5: 27 87% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-card border border-border shadow-sm;
+  }
+
+  .dark .glass {
+    @apply bg-white/[0.03] border-white/[0.08];
+  }
+
+  .glow-purple {
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.15);
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-purple-400 to-violet-300 bg-clip-text text-transparent;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.3);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.5);
+}
