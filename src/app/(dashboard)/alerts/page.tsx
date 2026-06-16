@@ -30,7 +30,7 @@ export default function AlertsPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-5">
       <div>
-        <h1 className="text-xl font-bold text-white">Job Alerts</h1>
+        <h1 className="text-xl font-bold text-foreground">Job Alerts</h1>
         <p className="text-sm text-muted-foreground mt-0.5">Get notified when new matching jobs are posted</p>
       </div>
 
@@ -62,7 +62,7 @@ export default function AlertsPage() {
         </div>
         <button
           onClick={addAlert}
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/80 transition"
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/80 transition"
         >
           <Plus className="w-4 h-4" /> Create Alert
         </button>

@@ -4,7 +4,7 @@ export default function AnalyticsPage() {
   return (
     <div className="max-w-5xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-white">Analytics</h1>
+        <h1 className="text-xl font-bold text-foreground">Analytics</h1>
         <p className="text-sm text-muted-foreground mt-0.5">Track your job search performance</p>
       </div>
 
@@ -16,7 +16,7 @@ export default function AnalyticsPage() {
         ].map((stat) => (
           <div key={stat.label} className="glass rounded-xl p-4">
             <p className="text-xs text-muted-foreground mb-1">{stat.label}</p>
-            <p className="text-2xl font-bold text-white">{stat.value}</p>
+            <p className="text-2xl font-bold text-foreground">{stat.value}</p>
             <p className={`text-xs font-medium mt-1 ${stat.positive ? "text-green-400" : "text-red-400"}`}>
               {stat.change} this week
             </p>

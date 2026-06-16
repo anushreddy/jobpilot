@@ -2,12 +2,14 @@ import { JobsClient } from "@/components/jobs/JobsClient";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { scoreResumeForJob } from "@/lib/ats";
 
 export default async function JobsPage() {
   const session = await getServerSession(authOptions);
-  const prefs = await db.userPreferences.findUnique({
-    where: { userId: session!.user.id },
-  });
+  const [prefs, resume] = await Promise.all([
+    db.userPreferences.findUnique({ where: { userId: session!.user.id } }),
+    db.resume.findUnique({ where: { userId: session!.user.id } }),
+  ]);
 
   const initialJobs = await db.job.findMany({
     where: { isActive: true },
@@ -26,9 +28,17 @@ export default async function JobsPage() {
     const matchScore = userSkills.length > 0
       ? Math.min(99, Math.round((matchingSkills.length / Math.max(job.skills.length, 1)) * 100) + 40)
       : null;
+    const atsScore = resume?.content
+      ? scoreResumeForJob(resume.content, {
+          skills: job.skills,
+          description: job.description,
+          title: job.title,
+        })
+      : null;
     return {
       ...job,
       matchScore,
+      atsScore,
       postedAt: job.postedAt instanceof Date ? job.postedAt.toISOString() : job.postedAt,
       createdAt: job.createdAt instanceof Date ? job.createdAt.toISOString() : job.createdAt,
     };

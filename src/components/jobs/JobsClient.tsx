@@ -60,7 +60,7 @@ export function JobsClient({ initialJobs, total, isPro }: Props) {
 
           <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground">
-              <span className="text-white font-medium">{count.toLocaleString()}</span> jobs
+              <span className="text-foreground font-medium">{count.toLocaleString()}</span> jobs
             </span>
             <select
               value={sort}

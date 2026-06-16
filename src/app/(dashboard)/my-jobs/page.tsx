@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Filter, ExternalLink, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { Search, ExternalLink, Trash2, FileText } from "lucide-react";
 import { cn, statusColor, statusLabel, timeAgo, formatSalary } from "@/lib/utils";
+import { AtsPie } from "@/components/jobs/AtsPie";
 import type { Application } from "@/types";
 
 const STATUS_OPTIONS = ["All", "SAVED", "APPLIED", "UNDER_REVIEW", "INTERVIEW", "OFFER", "REJECTED"];
@@ -13,6 +15,7 @@ export default function MyJobsPage() {
   const [loading, setLoading] = useState(true);
   const [activeStatus, setActiveStatus] = useState("All");
   const [search, setSearch] = useState("");
+  const [hasResume, setHasResume] = useState(true);
 
   async function fetchApplications(status?: string, q?: string) {
     setLoading(true);
@@ -23,6 +26,7 @@ export default function MyJobsPage() {
     const data = await res.json();
     setApplications(data.applications ?? []);
     setTotal(data.total ?? 0);
+    setHasResume(Boolean(data.hasResume));
     setLoading(false);
   }
 
@@ -53,7 +57,7 @@ export default function MyJobsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-white">My Applications</h1>
+          <h1 className="text-xl font-bold text-foreground">My Applications</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{total} total applications</p>
         </div>
         <div className="flex items-center gap-2">
@@ -89,6 +93,27 @@ export default function MyJobsPage() {
         ))}
       </div>
 
+      {/* Resume prompt — ATS scores need a resume on file */}
+      {!loading && !hasResume && (
+        <div className="glass rounded-xl p-4 flex items-center gap-3 border-primary/20">
+          <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+            <FileText className="w-4 h-4 text-primary" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-medium text-foreground">Upload your resume to see ATS scores</p>
+            <p className="text-xs text-muted-foreground">
+              Each application will show how well your resume matches that job.
+            </p>
+          </div>
+          <Link
+            href="/resume"
+            className="px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-xs font-medium hover:bg-primary/80 transition whitespace-nowrap"
+          >
+            Upload Resume
+          </Link>
+        </div>
+      )}
+
       {/* Table */}
       <div className="glass rounded-xl overflow-hidden">
         <table className="w-full">
@@ -98,6 +123,7 @@ export default function MyJobsPage() {
               <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Role</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Location</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Salary</th>
+              <th className="text-center px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">ATS</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Applied</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
               <th className="px-4 py-3" />
@@ -107,7 +133,7 @@ export default function MyJobsPage() {
             {loading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="border-b border-border/50">
-                  {Array.from({ length: 7 }).map((_, j) => (
+                  {Array.from({ length: 8 }).map((_, j) => (
                     <td key={j} className="px-4 py-3">
                       <div className="h-4 bg-secondary rounded animate-pulse" />
                     </td>
@@ -116,7 +142,7 @@ export default function MyJobsPage() {
               ))
             ) : applications.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground text-sm">
+                <td colSpan={8} className="px-4 py-12 text-center text-muted-foreground text-sm">
                   No applications found.{" "}
                   <a href="/jobs" className="text-primary hover:underline">Browse jobs →</a>
                 </td>
@@ -136,6 +162,15 @@ export default function MyJobsPage() {
                   <td className="px-4 py-3 text-sm text-muted-foreground">{app.job.location}</td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">
                     {formatSalary(app.job.salaryMin, app.job.salaryMax)}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {app.atsScore != null ? (
+                      <div className="flex justify-center">
+                        <AtsPie score={app.atsScore} />
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">{timeAgo(app.appliedAt)}</td>
                   <td className="px-4 py-3">

@@ -59,6 +59,7 @@ export interface Job {
   platformUrl: string;
   postedAt: string;
   matchScore?: number;
+  atsScore?: number | null;
 }
 
 export interface Application {
@@ -67,6 +68,7 @@ export interface Application {
   jobId: string;
   status: ApplicationStatus;
   matchScore: number | null;
+  atsScore?: number | null;
   autoApplied: boolean;
   appliedAt: string;
   updatedAt: string;

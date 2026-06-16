@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { scoreResumeForJob } from "@/lib/ats";
 
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions);
@@ -24,7 +25,7 @@ export async function GET(req: Request) {
     };
   }
 
-  const [applications, total] = await Promise.all([
+  const [applications, total, resume] = await Promise.all([
     db.application.findMany({
       where,
       include: { job: true },
@@ -33,9 +34,27 @@ export async function GET(req: Request) {
       take: limit,
     }),
     db.application.count({ where }),
+    db.resume.findUnique({ where: { userId: session.user.id } }),
   ]);
 
-  return NextResponse.json({ applications, total, page });
+  // Compute an ATS score per application only when a resume exists.
+  const withAts = applications.map((app) => ({
+    ...app,
+    atsScore: resume
+      ? scoreResumeForJob(resume.content, {
+          skills: app.job.skills,
+          description: app.job.description,
+          title: app.job.title,
+        })
+      : null,
+  }));
+
+  return NextResponse.json({
+    applications: withAts,
+    total,
+    page,
+    hasResume: Boolean(resume),
+  });
 }
 
 export async function POST(req: Request) {

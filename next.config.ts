@@ -11,6 +11,8 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: { allowedOrigins: ["localhost:3000"] },
   },
+  // Keep PDF/DOCX parsers as runtime Node modules instead of bundling them.
+  serverExternalPackages: ["pdf-parse", "mammoth"],
 };
 
 export default nextConfig;

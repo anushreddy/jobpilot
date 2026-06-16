@@ -16,7 +16,7 @@ export function StatsCard({ label, value, change, suffix }: Props) {
       <p className="text-xs text-muted-foreground mb-2">{label}</p>
       <div className="flex items-end justify-between">
         <div>
-          <p className="text-2xl font-bold text-white">
+          <p className="text-2xl font-bold text-foreground">
             {value}
             {suffix && <span className="text-base font-medium text-muted-foreground ml-0.5">{suffix}</span>}
           </p>

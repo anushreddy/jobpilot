@@ -107,7 +107,7 @@ export default function SettingsPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-5">
       <div>
-        <h1 className="text-xl font-bold text-white">Settings</h1>
+        <h1 className="text-xl font-bold text-foreground">Settings</h1>
         <p className="text-sm text-muted-foreground mt-0.5">Manage your account and job preferences</p>
       </div>
 
@@ -152,7 +152,7 @@ export default function SettingsPage() {
               />
             </div>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/80 transition">
+          <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/80 transition">
             <Save className="w-4 h-4" /> Save Profile
           </button>
         </div>
@@ -311,7 +311,7 @@ export default function SettingsPage() {
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500/20 to-violet-500/10 border border-purple-500/20 flex items-center justify-center mx-auto mb-4">
                 <Zap className="w-6 h-6 text-primary" />
               </div>
-              <h2 className="text-lg font-semibold text-white mb-2">Auto Apply — Pro Feature</h2>
+              <h2 className="text-lg font-semibold text-foreground mb-2">Auto Apply — Pro Feature</h2>
               <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
                 Let AI automatically apply to matching jobs on your behalf. Connects to LinkedIn, Indeed, and
                 Glassdoor to submit applications while you sleep.
@@ -328,7 +328,7 @@ export default function SettingsPage() {
               <div className="glass rounded-xl p-5">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h2 className="text-sm font-semibold text-white">Auto Apply</h2>
+                    <h2 className="text-sm font-semibold text-foreground">Auto Apply</h2>
                     <p className="text-xs text-muted-foreground mt-0.5">Automatically apply to matching jobs</p>
                   </div>
                   <button
@@ -448,7 +448,7 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="text-sm text-muted-foreground">Current Plan</p>
-                <p className="text-xl font-bold text-white mt-0.5">{session?.user.plan ?? "FREE"}</p>
+                <p className="text-xl font-bold text-foreground mt-0.5">{session?.user.plan ?? "FREE"}</p>
               </div>
               {isPro && (
                 <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/10 text-green-400 text-xs font-semibold border border-green-500/20">
@@ -465,7 +465,7 @@ export default function SettingsPage() {
                     { name: "Enterprise", price: "$49/mo", features: ["Unlimited Auto Apply", "Custom AI Models", "Team Dashboard", "Dedicated Support"] },
                   ].map((plan) => (
                     <div key={plan.name} className="border border-border rounded-xl p-4 hover:border-primary/40 transition">
-                      <p className="text-sm font-bold text-white">{plan.name}</p>
+                      <p className="text-sm font-bold text-foreground">{plan.name}</p>
                       <p className="text-xl font-bold text-primary mt-0.5">{plan.price}</p>
                       <ul className="mt-3 space-y-1.5">
                         {plan.features.map((f) => (

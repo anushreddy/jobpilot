@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Bookmark, ExternalLink, Zap, MapPin, Building2 } from "lucide-react";
 import { cn, platformColor, formatSalary, timeAgo } from "@/lib/utils";
+import { AtsPie } from "./AtsPie";
 import type { Job } from "@/types";
 
 interface Props {
@@ -65,14 +66,22 @@ export function JobCard({ job, isPro }: Props) {
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="text-xs text-muted-foreground">{job.company}</p>
-              <h3 className="text-sm font-semibold text-white mt-0.5 leading-tight">{job.title}</h3>
+              <h3 className="text-sm font-semibold text-foreground mt-0.5 leading-tight">{job.title}</h3>
             </div>
-            {matchScore != null && (
-              <div className="flex-shrink-0 text-right">
-                <p className={cn("text-lg font-bold", matchColor)}>{matchScore}%</p>
-                <p className="text-[10px] text-muted-foreground -mt-0.5">Match</p>
-              </div>
-            )}
+            <div className="flex items-center gap-3 flex-shrink-0">
+              {job.atsScore != null && (
+                <div className="flex flex-col items-center">
+                  <AtsPie score={job.atsScore} size={40} />
+                  <p className="text-[10px] text-muted-foreground mt-0.5">ATS</p>
+                </div>
+              )}
+              {matchScore != null && (
+                <div className="text-right">
+                  <p className={cn("text-lg font-bold", matchColor)}>{matchScore}%</p>
+                  <p className="text-[10px] text-muted-foreground -mt-0.5">Match</p>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 mt-2">

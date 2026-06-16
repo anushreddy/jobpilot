@@ -41,7 +41,7 @@ export function Sidebar() {
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center flex-shrink-0">
             <Zap className="w-4 h-4 text-white" />
           </div>
-          <span className="font-bold text-white text-lg">JobPilot</span>
+          <span className="font-bold text-foreground text-lg">JobPilot</span>
         </Link>
       </div>
 
@@ -70,7 +70,7 @@ export function Sidebar() {
       {/* Upgrade banner (free users) */}
       {!isPro && (
         <div className="mx-3 mb-4 p-3 rounded-xl bg-gradient-to-br from-purple-600/20 to-violet-600/10 border border-purple-500/20">
-          <p className="text-xs font-semibold text-white mb-0.5">Upgrade Pro</p>
+          <p className="text-xs font-semibold text-foreground mb-0.5">Upgrade Pro</p>
           <p className="text-xs text-muted-foreground mb-2.5">Unlock advanced analytics, AI insights, and more.</p>
           <Link
             href="/settings?tab=billing"

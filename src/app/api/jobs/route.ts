@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { scoreResumeForJob } from "@/lib/ats";
 
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions);
@@ -45,9 +46,10 @@ export async function GET(req: Request) {
   ]);
 
   // Get user's preferences to compute match scores
-  const prefs = await db.userPreferences.findUnique({
-    where: { userId: session.user.id },
-  });
+  const [prefs, resume] = await Promise.all([
+    db.userPreferences.findUnique({ where: { userId: session.user.id } }),
+    db.resume.findUnique({ where: { userId: session.user.id } }),
+  ]);
 
   const userSkills = prefs?.skills ?? [];
   const jobsWithMatch = jobs.map((job) => {
@@ -58,7 +60,15 @@ export async function GET(req: Request) {
       ? Math.min(99, Math.round((matchingSkills.length / Math.max(job.skills.length, 1)) * 100) + 40)
       : null;
 
-    return { ...job, matchScore };
+    const atsScore = resume?.content
+      ? scoreResumeForJob(resume.content, {
+          skills: job.skills,
+          description: job.description,
+          title: job.title,
+        })
+      : null;
+
+    return { ...job, matchScore, atsScore };
   });
 
   return NextResponse.json({

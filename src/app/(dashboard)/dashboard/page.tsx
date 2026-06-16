@@ -82,12 +82,12 @@ export default async function DashboardPage() {
           </div>
           <ApplyVelocityGauge score={data.velocityScore} />
           <p className="text-center text-xs text-muted-foreground mt-2">
-            You&apos;re applying <span className="text-white font-semibold">2.3x faster</span> than your peers this week.
+            You&apos;re applying <span className="text-foreground font-semibold">2.3x faster</span> than your peers this week.
           </p>
           <div className="mt-3 flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-lg px-3 py-2">
             <Zap className="w-3.5 h-3.5 text-primary flex-shrink-0" />
             <p className="text-xs text-muted-foreground">
-              You&apos;re in the top <span className="text-white font-medium">12%</span> of active candidates.
+              You&apos;re in the top <span className="text-foreground font-medium">12%</span> of active candidates.
             </p>
             <Link href="/analytics" className="ml-auto text-xs text-primary font-medium whitespace-nowrap flex items-center gap-1">
               View Analytics <ArrowRight className="w-3 h-3" />
@@ -108,7 +108,7 @@ export default async function DashboardPage() {
               <div key={item.label} className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">{item.label}</p>
                 <div className="flex items-center gap-3">
-                  <p className="text-sm font-semibold text-white">{item.value}</p>
+                  <p className="text-sm font-semibold text-foreground">{item.value}</p>
                   <span className="text-xs text-green-400 font-medium">↑ {item.change}%</span>
                 </div>
               </div>

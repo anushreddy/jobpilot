@@ -27,7 +27,7 @@ export function Header() {
   return (
     <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-background/80 backdrop-blur sticky top-0 z-30">
       <div>
-        <h1 className="text-lg font-semibold text-white">
+        <h1 className="text-lg font-semibold text-foreground">
           {greeting()}, {name} 👋
         </h1>
         <p className="text-xs text-muted-foreground">Let&apos;s accelerate your next opportunity.</p>
