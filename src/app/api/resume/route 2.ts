@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { unlink } from "fs/promises";
+import path from "path";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { getStorage } from "@/lib/storage";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -34,9 +35,9 @@ export async function DELETE() {
   const resume = await db.resume.findUnique({ where: { userId: session.user.id } });
   if (!resume) return NextResponse.json({ ok: true });
 
-  // Remove the stored object (local disk or S3) if one exists.
+  // Remove the local file if one was stored.
   if (resume.filePath) {
-    await getStorage().delete(resume.filePath);
+    await unlink(path.join(process.cwd(), resume.filePath)).catch(() => {});
   }
 
   await db.resume.delete({ where: { userId: session.user.id } });

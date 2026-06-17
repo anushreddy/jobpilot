@@ -1,13 +1,10 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { writeFile, mkdir, unlink } from "fs/promises";
-import path from "path";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { scoreResumeQuality } from "@/lib/ats";
 import { extractResumeText } from "@/lib/resume-parser";
-
-const UPLOAD_DIR = path.join(process.cwd(), "uploads", "resumes");
+import { getStorage, originalResumeKey } from "@/lib/storage";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -21,27 +18,25 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "No file or content provided" }, { status: 400 });
   }
 
+  const storage = getStorage();
   let content = textContent;
   let fileName = (formData.get("fileName") as string) || "resume.txt";
   let filePath: string | null = null;
 
   if (file) {
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const buffer = Buffer.from(await file.arrayBuffer());
     fileName = file.name;
 
-    // Overwrite: remove the previously stored file so it doesn't orphan on disk.
+    // Overwrite: remove the previously stored object so it doesn't orphan.
     const existing = await db.resume.findUnique({ where: { userId: session.user.id } });
     if (existing?.filePath) {
-      await unlink(path.join(process.cwd(), existing.filePath)).catch(() => {});
+      await storage.delete(existing.filePath);
     }
 
-    // Save to local folder (dev). Namespace by user id to avoid collisions.
-    await mkdir(UPLOAD_DIR, { recursive: true });
-    const safeName = `${session.user.id}-${Date.now()}-${file.name.replace(/[^\w.-]/g, "_")}`;
-    const absPath = path.join(UPLOAD_DIR, safeName);
-    await writeFile(absPath, buffer);
-    filePath = path.join("uploads", "resumes", safeName);
+    // Store the original under a scalable, per-user key.
+    const key = originalResumeKey(session.user.id, file.name);
+    await storage.put(key, buffer, file.type || "application/octet-stream");
+    filePath = key;
 
     // Extract text from PDF/DOCX/plain-text so ATS scoring has real content.
     const extracted = await extractResumeText(buffer, file.name, file.type);

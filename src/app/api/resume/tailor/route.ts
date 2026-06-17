@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { tailorResume, generateCoverLetter } from "@/lib/ai";
+import { getStorage, tailoredResumeKey, coverLetterKey } from "@/lib/storage";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -29,13 +30,30 @@ export async function POST(req: Request) {
       : Promise.resolve(null),
   ]);
 
-  await db.tailoredResume.upsert({
-    where: { resumeId_jobId: undefined as never } as never,
-    update: { content: tailored },
-    create: { resumeId: resume.id, jobId, content: tailored },
-  }).catch(() =>
-    db.tailoredResume.create({ data: { resumeId: resume.id, jobId, content: tailored } })
-  );
+  // Persist the AI-generated artifacts to object storage under per-user, per-job keys.
+  const storage = getStorage();
+  const storageKey = tailoredResumeKey(session.user.id, jobId);
+  await storage.put(storageKey, Buffer.from(tailored, "utf-8"), "text/plain");
 
-  return NextResponse.json({ tailored, coverLetter });
+  let clKey: string | null = null;
+  if (coverLetter) {
+    clKey = coverLetterKey(session.user.id, jobId);
+    await storage.put(clKey, Buffer.from(coverLetter, "utf-8"), "text/plain");
+  }
+
+  // One tailored record per (resume, job) — overwrite on re-generate.
+  const saved = await db.tailoredResume.upsert({
+    where: { resumeId_jobId: { resumeId: resume.id, jobId } },
+    update: { content: tailored, storageKey, coverLetter, coverLetterKey: clKey },
+    create: {
+      resumeId: resume.id,
+      jobId,
+      content: tailored,
+      storageKey,
+      coverLetter,
+      coverLetterKey: clKey,
+    },
+  });
+
+  return NextResponse.json({ tailored, coverLetter, storageKey, id: saved.id });
 }

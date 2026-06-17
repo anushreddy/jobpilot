@@ -105,15 +105,19 @@ model Resume {
 }
 
 model TailoredResume {
-  id          String   @id @default(cuid())
-  resumeId    String
-  jobId       String
-  content     String   @db.Text
-  createdAt   DateTime @default(now())
+  id              String   @id @default(cuid())
+  resumeId        String
+  jobId           String
+  content         String   @db.Text
+  storageKey      String?
+  coverLetter     String?  @db.Text
+  coverLetterKey  String?
+  createdAt       DateTime @default(now())
 
   resume      Resume      @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   job         Job         @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
+  @@unique([resumeId, jobId])
   @@map("tailored_resumes")
 }
 
