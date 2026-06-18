@@ -10,5 +10,6 @@ export const config = {
     "/alerts/:path*",
     "/messages/:path*",
     "/settings/:path*",
+    "/admin/:path*",
   ],
 };

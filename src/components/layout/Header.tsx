@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import { Bell, LogOut, Settings, User } from "lucide-react";
+import { Bell, LogOut, Settings, User, ShieldCheck } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import {
   DropdownMenu,
@@ -68,6 +68,13 @@ export function Header() {
                 <Settings className="w-4 h-4" /> Settings
               </Link>
             </DropdownMenuItem>
+            {session?.user.role === "ADMIN" && (
+              <DropdownMenuItem asChild>
+                <Link href="/admin" className="flex items-center gap-2 cursor-pointer text-purple-400 focus:text-purple-400">
+                  <ShieldCheck className="w-4 h-4" /> Admin Panel
+                </Link>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => signOut({ callbackUrl: "/login" })}

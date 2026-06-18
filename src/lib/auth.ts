@@ -42,6 +42,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           image: user.image,
           plan: user.plan,
+          role: user.role,
         };
       },
     }),
@@ -67,6 +68,13 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.plan = (user as { plan?: string }).plan ?? "FREE";
+        token.role = (user as { role?: string }).role ?? "USER";
+      }
+      // OAuth logins don't pass `plan`/`role` on `user`; backfill from DB once.
+      if (token.id && !token.role) {
+        const dbUser = await db.user.findUnique({ where: { id: token.id as string } });
+        token.plan = dbUser?.plan ?? "FREE";
+        token.role = dbUser?.role ?? "USER";
       }
       return token;
     },
@@ -74,6 +82,7 @@ export const authOptions: NextAuthOptions = {
       if (token) {
         session.user.id = token.id as string;
         session.user.plan = token.plan as string;
+        session.user.role = token.role as string;
       }
       return session;
     },
@@ -104,6 +113,7 @@ declare module "next-auth" {
       email?: string | null;
       image?: string | null;
       plan: string;
+      role: string;
     };
   }
 }

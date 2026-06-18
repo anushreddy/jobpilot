@@ -15,6 +15,7 @@ model User {
   image          String?
   hashedPassword String?
   plan           Plan      @default(FREE)
+  role           Role      @default(USER)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -218,6 +219,11 @@ enum Plan {
   FREE
   PRO
   ENTERPRISE
+}
+
+enum Role {
+  USER
+  ADMIN
 }
 
 enum Platform {
