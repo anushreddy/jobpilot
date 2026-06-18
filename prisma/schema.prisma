@@ -68,6 +68,18 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
+model EmailVerificationCode {
+  id        String   @id @default(cuid())
+  email     String
+  code      String
+  expires   DateTime
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@map("email_verification_codes")
+}
+
 model UserPreferences {
   id              String   @id @default(cuid())
   userId          String   @unique

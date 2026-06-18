@@ -11,7 +11,6 @@ export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
   pages: {
     signIn: "/login",
-    newUser: "/onboarding",
   },
   providers: [
     CredentialsProvider({
@@ -31,6 +30,11 @@ export const authOptions: NextAuthOptions = {
 
         const isValid = await bcrypt.compare(credentials.password, user.hashedPassword);
         if (!isValid) return null;
+
+        // Require a verified email before allowing password login.
+        if (!user.emailVerified) {
+          throw new Error("EMAIL_NOT_VERIFIED");
+        }
 
         return {
           id: user.id,
@@ -72,6 +76,22 @@ export const authOptions: NextAuthOptions = {
         session.user.plan = token.plan as string;
       }
       return session;
+    },
+  },
+  events: {
+    // New OAuth (Google) users: email is already verified by the provider,
+    // and they need a preferences row like credential signups get.
+    async createUser({ user }) {
+      await db.userPreferences.upsert({
+        where: { userId: user.id },
+        update: {},
+        create: { userId: user.id },
+      });
+      // OAuth provider already verified the email — mark it so login isn't blocked.
+      await db.user.update({
+        where: { id: user.id },
+        data: { emailVerified: new Date() },
+      });
     },
   },
 };

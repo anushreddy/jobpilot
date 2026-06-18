@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, Mail, Lock, Zap } from "lucide-react";
+import { GoogleButton, AuthDivider } from "@/components/auth/GoogleButton";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,6 +26,11 @@ export default function LoginPage() {
     });
 
     if (result?.error) {
+      // Unverified accounts are sent to the verification step instead.
+      if (result.error === "EMAIL_NOT_VERIFIED") {
+        router.push(`/verify?email=${encodeURIComponent(email)}`);
+        return;
+      }
       setError("Invalid email or password");
       setLoading(false);
     } else {
@@ -91,6 +97,9 @@ export default function LoginPage() {
           Sign in
         </button>
       </form>
+
+      <AuthDivider />
+      <GoogleButton label="Sign in with Google" />
 
       <p className="text-center text-sm text-muted-foreground mt-6">
         Don&apos;t have an account?{" "}

@@ -4,6 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, Mail, Lock, User, Zap } from "lucide-react";
+import { GoogleButton, AuthDivider } from "@/components/auth/GoogleButton";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -17,6 +20,14 @@ export default function RegisterPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!EMAIL_RE.test(form.email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+    if (form.password.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
+    }
     if (form.password !== form.confirm) {
       setError("Passwords do not match");
       return;
@@ -35,7 +46,8 @@ export default function RegisterPage() {
       setError(data.error ?? "Registration failed");
       setLoading(false);
     } else {
-      router.push("/login?registered=1");
+      // Move to the email verification step.
+      router.push(`/verify?email=${encodeURIComponent(form.email)}`);
     }
   }
 
@@ -128,6 +140,9 @@ export default function RegisterPage() {
           Create account
         </button>
       </form>
+
+      <AuthDivider />
+      <GoogleButton label="Sign up with Google" />
 
       <p className="text-center text-sm text-muted-foreground mt-6">
         Already have an account?{" "}
