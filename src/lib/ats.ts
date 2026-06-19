@@ -68,3 +68,34 @@ export function scoreResumeQuality(resumeContent: string): number {
 
   return Math.round(Math.min(99, Math.max(10, (sectionScore * 0.7 + lengthScore * 0.3) * 100)));
 }
+
+// Common words to ignore when matching a resume against a free-text JD.
+const STOPWORDS = new Set([
+  "the", "and", "for", "with", "you", "our", "are", "will", "this", "that",
+  "have", "has", "your", "their", "from", "who", "all", "can", "out", "use",
+  "job", "role", "team", "work", "working", "experience", "years", "year",
+  "ability", "strong", "we", "a", "an", "to", "of", "in", "on", "as", "is",
+  "be", "or", "at", "by", "it", "we're", "etc", "including", "such",
+]);
+
+/**
+ * Match score (0-100) between a resume and a pasted job description.
+ * Measures how many meaningful JD keywords appear in the resume.
+ */
+export function scoreResumeAgainstJD(resumeContent: string, jobDescription: string): number {
+  if (!resumeContent.trim() || !jobDescription.trim()) return 0;
+
+  const resumeTokens = tokenize(resumeContent);
+  const jdTokens = [...tokenize(jobDescription)].filter(
+    (t) => t.length > 2 && !STOPWORDS.has(t) && !/^\d+$/.test(t)
+  );
+  if (jdTokens.length === 0) return 0;
+
+  const unique = [...new Set(jdTokens)];
+  const matched = unique.filter((t) => resumeTokens.has(t)).length;
+  const coverage = matched / unique.length;
+
+  // Map raw coverage to a friendlier 40-99 band (a tailored resume rarely
+  // contains every JD word, so 100% coverage isn't expected).
+  return Math.round(Math.min(99, Math.max(20, coverage * 130 + 25)));
+}

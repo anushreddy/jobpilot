@@ -2,15 +2,18 @@
 
 import { useState } from "react";
 import { Sparkles, Loader2, RefreshCw, Cloud, FileText, FileType, Check } from "lucide-react";
+import { AtsPie } from "@/components/jobs/AtsPie";
 import type { TailoredResumeDoc } from "@/types/resume";
 
 interface Props {
   hasResume: boolean;
+  onSaved?: () => void;
 }
 
-export function JdTailor({ hasResume }: Props) {
+export function JdTailor({ hasResume, onSaved }: Props) {
   const [jd, setJd] = useState("");
   const [doc, setDoc] = useState<TailoredResumeDoc | null>(null);
+  const [matchScore, setMatchScore] = useState<number | null>(null);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -36,6 +39,7 @@ export function JdTailor({ hasResume }: Props) {
         return;
       }
       setDoc(data.doc);
+      setMatchScore(data.matchScore ?? null);
     } catch {
       setError("Generation failed. Please try again.");
     } finally {
@@ -54,6 +58,7 @@ export function JdTailor({ hasResume }: Props) {
       });
       if (res.ok) {
         setSaved(true);
+        onSaved?.(); // refresh the resume page — this is now the latest resume
         setTimeout(() => setSaved(false), 2500);
       } else {
         const d = await res.json();
@@ -124,6 +129,19 @@ export function JdTailor({ hasResume }: Props) {
 
       {doc && (
         <div className="space-y-3 pt-2 border-t border-border">
+          {/* Match score */}
+          {matchScore != null && (
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
+              <AtsPie score={matchScore} size={48} />
+              <div>
+                <p className="text-sm font-semibold text-foreground">JD Match Score</p>
+                <p className="text-xs text-muted-foreground">
+                  How well this tailored resume aligns with the pasted job description.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center justify-between flex-wrap gap-2">
             <p className="text-xs font-medium text-muted-foreground">Tailored resume</p>
             <div className="flex items-center gap-1.5">
@@ -157,10 +175,12 @@ export function JdTailor({ hasResume }: Props) {
 
 function ResumePreview({ doc }: { doc: TailoredResumeDoc }) {
   return (
-    <div className="bg-white text-slate-800 rounded-lg border border-border p-6 max-h-[560px] overflow-auto">
-      <h3 className="text-lg font-bold">{doc.name}</h3>
-      <p className="text-sm text-purple-700 font-medium">{doc.title}</p>
-      <p className="text-xs text-slate-500 mb-4">{doc.contact}</p>
+    <div className="bg-white text-slate-800 rounded-lg border border-border p-8 max-h-[600px] overflow-auto leading-relaxed">
+      <div className="text-center mb-5">
+        <h3 className="text-2xl font-bold tracking-tight">{doc.name}</h3>
+        {doc.title && <p className="text-sm text-slate-600 mt-0.5">{doc.title}</p>}
+        <p className="text-xs text-slate-500 mt-1">{doc.contact}</p>
+      </div>
 
       {doc.summary?.length > 0 && (
         <Section title="Summary">
@@ -235,40 +255,48 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function buildDocHtml(doc: TailoredResumeDoc): string {
   const esc = (s: string) =>
     s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  const li = (arr: string[]) => arr.map((b) => `<li>${esc(b)}</li>`).join("");
+  const li = (arr: string[]) =>
+    arr.map((b) => `<li style="margin-bottom:5px;line-height:1.45;">${esc(b)}</li>`).join("");
 
   const skillsRows = doc.skills
     .map(
       (s) =>
-        `<tr><td style="padding:4px 8px;border:1px solid #ddd;font-weight:bold;width:30%;">${esc(
+        `<tr><td style="padding:6px 10px;border:1px solid #e2e2e2;font-weight:bold;width:28%;vertical-align:top;">${esc(
           s.category
-        )}</td><td style="padding:4px 8px;border:1px solid #ddd;">${esc(s.items.join(", "))}</td></tr>`
+        )}</td><td style="padding:6px 10px;border:1px solid #e2e2e2;">${esc(s.items.join(", "))}</td></tr>`
     )
     .join("");
 
   const expBlocks = doc.experience
     .map(
       (e) => `
-      <p style="margin:8px 0 2px;"><b>${esc(e.role)} · ${esc(e.company)}</b>
-        <span style="float:right;color:#666;">${esc(e.period)}</span></p>
-      ${e.location ? `<p style="margin:0;color:#888;font-size:10pt;">${esc(e.location)}</p>` : ""}
-      <ul style="margin:2px 0 8px;">${li(e.bullets)}</ul>`
+      <table style="width:100%;margin:12px 0 2px;"><tr>
+        <td style="font-weight:bold;font-size:11.5pt;">${esc(e.role)} · ${esc(e.company)}</td>
+        <td style="text-align:right;color:#666;font-size:10pt;white-space:nowrap;">${esc(e.period)}</td>
+      </tr></table>
+      ${e.location ? `<p style="margin:0 0 4px;color:#888;font-size:10pt;">${esc(e.location)}</p>` : ""}
+      <ul style="margin:4px 0 14px;padding-left:20px;">${li(e.bullets)}</ul>`
     )
     .join("");
 
   const eduBlocks = doc.education
-    .map((ed) => `<p style="margin:2px 0;">${esc(ed.degree)}, ${esc(ed.school)} <span style="color:#666;">(${esc(ed.period)})</span></p>`)
+    .map(
+      (ed) =>
+        `<p style="margin:4px 0;">${esc(ed.degree)}, ${esc(ed.school)} <span style="color:#666;">(${esc(ed.period)})</span></p>`
+    )
     .join("");
 
   const heading = (t: string) =>
-    `<h3 style="border-bottom:1px solid #999;text-transform:uppercase;font-size:11pt;color:#444;margin:14px 0 6px;">${t}</h3>`;
+    `<h3 style="border-bottom:1.5px solid #888;text-transform:uppercase;font-size:11.5pt;letter-spacing:0.5px;color:#333;margin:20px 0 8px;padding-bottom:3px;">${t}</h3>`;
 
   return `<!DOCTYPE html><html xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"></head>
-  <body style="font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#222;">
-    <h1 style="margin:0;font-size:18pt;">${esc(doc.name)}</h1>
-    <p style="margin:0;color:#6b21a8;font-weight:bold;">${esc(doc.title)}</p>
-    <p style="margin:0 0 6px;color:#666;font-size:10pt;">${esc(doc.contact)}</p>
-    ${doc.summary.length ? heading("Summary") + `<ul>${li(doc.summary)}</ul>` : ""}
+  <body style="font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#222;line-height:1.5;margin:48px 56px;">
+    <div style="text-align:center;margin-bottom:6px;">
+      <div style="font-size:21pt;font-weight:bold;letter-spacing:0.5px;">${esc(doc.name)}</div>
+      ${doc.title ? `<div style="font-size:11pt;color:#555;margin-top:2px;">${esc(doc.title)}</div>` : ""}
+      <div style="color:#666;font-size:10pt;margin-top:3px;">${esc(doc.contact)}</div>
+    </div>
+    ${doc.summary.length ? heading("Summary") + `<ul style="padding-left:20px;margin:4px 0;">${li(doc.summary)}</ul>` : ""}
     ${doc.skills.length ? heading("Skills") + `<table style="border-collapse:collapse;width:100%;">${skillsRows}</table>` : ""}
     ${doc.experience.length ? heading("Experience") + expBlocks : ""}
     ${doc.education.length ? heading("Education") + eduBlocks : ""}
@@ -279,49 +307,56 @@ function buildDocHtml(doc: TailoredResumeDoc): string {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function renderPdf(doc: TailoredResumeDoc, JsPDF: any, autoTable: any) {
   const pdf = new JsPDF({ unit: "pt", format: "letter" });
-  const margin = 48;
+  const margin = 56;
   const width = pdf.internal.pageSize.getWidth() - margin * 2;
+  const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
+  const LH = 15; // line height for body text
   let y = margin;
 
   const ensure = (h: number) => {
     if (y + h > pageH - margin) { pdf.addPage(); y = margin; }
   };
   const heading = (t: string) => {
-    ensure(24);
+    y += 8;
+    ensure(28);
     pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(11);
-    pdf.setTextColor(80);
+    pdf.setFontSize(11.5);
+    pdf.setTextColor(60);
     pdf.text(t.toUpperCase(), margin, y);
-    pdf.setDrawColor(180);
-    pdf.line(margin, y + 3, margin + width, y + 3);
-    y += 16;
+    pdf.setDrawColor(150);
+    pdf.setLineWidth(1);
+    pdf.line(margin, y + 4, margin + width, y + 4);
+    y += 18;
     pdf.setTextColor(34);
   };
   const bullets = (arr: string[]) => {
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(10);
     arr.forEach((b) => {
-      const lines = pdf.splitTextToSize(b, width - 14) as string[];
-      ensure(lines.length * 13);
-      pdf.text("•", margin, y);
-      pdf.text(lines, margin + 12, y);
-      y += lines.length * 13;
+      const lines = pdf.splitTextToSize(b, width - 16) as string[];
+      ensure(lines.length * LH);
+      pdf.text("•", margin + 2, y);
+      pdf.text(lines, margin + 14, y);
+      y += lines.length * LH + 3; // gap between bullets
     });
     y += 4;
   };
 
-  // Header
+  // Centered header
   pdf.setFont("helvetica", "bold");
-  pdf.setFontSize(18);
-  pdf.text(doc.name || "Resume", margin, y); y += 20;
-  pdf.setFontSize(11);
-  pdf.setTextColor(107, 33, 168);
-  pdf.text(doc.title || "", margin, y); y += 14;
+  pdf.setFontSize(20);
+  pdf.text(doc.name || "Resume", pageW / 2, y, { align: "center" }); y += 18;
+  if (doc.title) {
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(11);
+    pdf.setTextColor(90);
+    pdf.text(doc.title, pageW / 2, y, { align: "center" }); y += 14;
+  }
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(9);
   pdf.setTextColor(110);
-  pdf.text(doc.contact || "", margin, y); y += 16;
+  pdf.text(doc.contact || "", pageW / 2, y, { align: "center" }); y += 6;
   pdf.setTextColor(34);
 
   if (doc.summary?.length) { heading("Summary"); bullets(doc.summary); }
@@ -332,27 +367,32 @@ function renderPdf(doc: TailoredResumeDoc, JsPDF: any, autoTable: any) {
       startY: y,
       margin: { left: margin, right: margin },
       theme: "grid",
-      styles: { fontSize: 9, cellPadding: 4 },
-      columnStyles: { 0: { fontStyle: "bold", cellWidth: 130 } },
+      styles: { fontSize: 9.5, cellPadding: 6, lineColor: [225, 225, 225], textColor: [40, 40, 40] },
+      columnStyles: { 0: { fontStyle: "bold", cellWidth: 140, fillColor: [248, 247, 252] } },
       body: doc.skills.map((s) => [s.category, s.items.join(", ")]),
     });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    y = (pdf as any).lastAutoTable.finalY + 12;
+    y = (pdf as any).lastAutoTable.finalY + 6;
   }
 
   if (doc.experience?.length) {
     heading("Experience");
     doc.experience.forEach((e) => {
-      ensure(20);
+      ensure(24);
       pdf.setFont("helvetica", "bold");
-      pdf.setFontSize(10.5);
+      pdf.setFontSize(11);
       pdf.text(`${e.role} · ${e.company}`, margin, y);
       pdf.setFont("helvetica", "normal");
       pdf.setFontSize(9);
       pdf.setTextColor(110);
       pdf.text(e.period || "", margin + width, y, { align: "right" });
+      y += 13;
+      if (e.location) {
+        pdf.setFontSize(9);
+        pdf.text(e.location, margin, y);
+        y += 12;
+      }
       pdf.setTextColor(34);
-      y += 14;
       bullets(e.bullets);
     });
   }
@@ -362,12 +402,12 @@ function renderPdf(doc: TailoredResumeDoc, JsPDF: any, autoTable: any) {
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(10);
     doc.education.forEach((ed) => {
-      ensure(14);
+      ensure(16);
       pdf.text(`${ed.degree}, ${ed.school}`, margin, y);
       pdf.setTextColor(110);
       pdf.text(ed.period || "", margin + width, y, { align: "right" });
       pdf.setTextColor(34);
-      y += 14;
+      y += LH;
     });
   }
 

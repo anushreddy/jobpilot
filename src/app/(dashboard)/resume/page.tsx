@@ -27,19 +27,21 @@ export default function ResumePage() {
   const [hasResume, setHasResume] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  async function loadResume() {
+    const data = await fetch("/api/resume").then((r) => r.json());
+    if (data?.id) {
+      setContent(data.content ?? "");
+      setFileName(data.fileName);
+      setAtsScore(data.atsScore ?? null);
+      setUpdatedAt(data.updatedAt ?? null);
+      setHasResume(true);
+    }
+    setLoading(false);
+  }
+
   useEffect(() => {
-    fetch("/api/resume")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data?.id) {
-          setContent(data.content ?? "");
-          setFileName(data.fileName);
-          setAtsScore(data.atsScore ?? null);
-          setUpdatedAt(data.updatedAt ?? null);
-          setHasResume(true);
-        }
-        setLoading(false);
-      });
+    loadResume();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleDelete() {
@@ -171,7 +173,7 @@ export default function ResumePage() {
       </div>
 
       {/* AI: tailor resume to a pasted JD */}
-      <JdTailor hasResume={hasResume} />
+      <JdTailor hasResume={hasResume} onSaved={loadResume} />
     </div>
   );
 }

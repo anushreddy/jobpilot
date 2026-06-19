@@ -11,39 +11,43 @@ const anthropic = new Anthropic({
  */
 export async function tailorResumeStructured(
   resumeContent: string,
-  jobDescription: string
+  jobDescription: string,
+  linkedinUrl?: string
 ): Promise<TailoredResumeDoc> {
   const message = await anthropic.messages.create({
     model: "claude-sonnet-4-6",
-    max_tokens: 4096,
+    max_tokens: 8192,
     messages: [
       {
         role: "user",
-        content: `You are an expert resume writer. Rewrite the candidate's resume to target the job description, staying truthful and ATS-friendly, and return it as STRUCTURED JSON.
+        content: `You are an expert resume writer. Restructure the candidate's EXISTING resume to better target the job description, then return it as STRUCTURED JSON.
 
 JOB DESCRIPTION:
 ${jobDescription}
 
 ORIGINAL RESUME:
 ${resumeContent}
+${linkedinUrl ? `\nCANDIDATE LINKEDIN: ${linkedinUrl}` : ""}
 
 Return ONLY a JSON object (no markdown, no commentary) with exactly this shape:
 {
-  "name": string,
-  "title": string,                         // target role title
-  "contact": string,                        // one line: email · phone · location · links
-  "summary": string[],                      // 3-5 concise bullet points
-  "skills": [ { "category": string, "items": string[] } ],  // grouped, e.g. "Languages", "Frameworks", "Cloud"
+  "name": string,                           // the candidate's full name ONLY (no role/title in this field)
+  "title": string,                          // the candidate's current professional title (e.g. "Senior Software Engineer")
+  "contact": string,                        // one line: email · phone · location${linkedinUrl ? " · LinkedIn URL" : ""}
+  "summary": string[],                      // 2-4 bullet points
+  "skills": [ { "category": string, "items": string[] } ],
   "experience": [ { "company": string, "role": string, "period": string, "location": string, "bullets": string[] } ],
   "education": [ { "school": string, "degree": string, "period": string } ]
 }
 
-Rules:
+IMPORTANT rules:
+- PRESERVE the candidate's real content. Keep EVERY job, employer, date, and education entry from the original resume — do not drop or merge any.
+- Keep each role's full set of responsibilities/achievements. You may lightly rephrase bullets to mirror JD wording, but do NOT shorten or summarize away detail. Aim to keep roughly the same number of bullets per role as the original (or more), not fewer.
+- "name" is the person's name only. Never put the target job title in the name field.
+${linkedinUrl ? `- Include this LinkedIn URL in the contact line: ${linkedinUrl}` : "- Only include contact details present in the original resume."}
 - Never invent employers, titles, dates, degrees, or skills the candidate doesn't have.
-- Surface JD-relevant experience first; use JD keywords naturally in bullets.
-- Each experience entry: 3-6 achievement-oriented bullets (start with strong verbs, quantify where possible).
-- Group skills into 3-6 logical categories for a clean table.
-- If a field is unknown, use an empty string or empty array — never fabricate.`,
+- Group skills into logical categories for a clean table.
+- If a field is unknown, use an empty string or empty array.`,
       },
     ],
   });

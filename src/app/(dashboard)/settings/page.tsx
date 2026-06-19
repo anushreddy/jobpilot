@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
-import { Save, Loader2, Plus, X, Lock, Zap, Link2, CheckCircle } from "lucide-react";
+import { Save, Loader2, Plus, X, Lock, Zap, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LinkedAccountsTab } from "@/components/settings/LinkedAccountsTab";
 
 const TABS = ["Profile", "Preferences", "Auto Apply", "Linked Accounts", "Billing"] as const;
 type Tab = typeof TABS[number];
@@ -416,30 +417,7 @@ export default function SettingsPage() {
       )}
 
       {/* Linked Accounts tab */}
-      {activeTab === "Linked Accounts" && (
-        <div className="space-y-3">
-          {[
-            { platform: "LINKEDIN", name: "LinkedIn", description: "Connect to auto-apply to LinkedIn jobs" },
-            { platform: "INDEED", name: "Indeed", description: "Connect to auto-apply to Indeed jobs" },
-            { platform: "GLASSDOOR", name: "Glassdoor", description: "Connect to auto-apply to Glassdoor jobs" },
-          ].map((acc) => (
-            <div key={acc.platform} className="glass rounded-xl p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-                  <Link2 className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">{acc.name}</p>
-                  <p className="text-xs text-muted-foreground">{acc.description}</p>
-                </div>
-              </div>
-              <button className="flex items-center gap-2 px-3 py-1.5 bg-secondary hover:bg-secondary/70 text-foreground border border-border rounded-lg text-xs font-medium transition">
-                Connect
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+      {activeTab === "Linked Accounts" && <LinkedAccountsTab />}
 
       {/* Billing tab */}
       {activeTab === "Billing" && (
