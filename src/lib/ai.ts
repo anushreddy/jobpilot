@@ -1,8 +1,58 @@
 import Anthropic from "@anthropic-ai/sdk";
+import type { TailoredResumeDoc } from "@/types/resume";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
+
+/**
+ * Tailor a resume to a JD and return a STRUCTURED document so the client can
+ * render bullets for the summary/experience and a table for skills.
+ */
+export async function tailorResumeStructured(
+  resumeContent: string,
+  jobDescription: string
+): Promise<TailoredResumeDoc> {
+  const message = await anthropic.messages.create({
+    model: "claude-sonnet-4-6",
+    max_tokens: 4096,
+    messages: [
+      {
+        role: "user",
+        content: `You are an expert resume writer. Rewrite the candidate's resume to target the job description, staying truthful and ATS-friendly, and return it as STRUCTURED JSON.
+
+JOB DESCRIPTION:
+${jobDescription}
+
+ORIGINAL RESUME:
+${resumeContent}
+
+Return ONLY a JSON object (no markdown, no commentary) with exactly this shape:
+{
+  "name": string,
+  "title": string,                         // target role title
+  "contact": string,                        // one line: email · phone · location · links
+  "summary": string[],                      // 3-5 concise bullet points
+  "skills": [ { "category": string, "items": string[] } ],  // grouped, e.g. "Languages", "Frameworks", "Cloud"
+  "experience": [ { "company": string, "role": string, "period": string, "location": string, "bullets": string[] } ],
+  "education": [ { "school": string, "degree": string, "period": string } ]
+}
+
+Rules:
+- Never invent employers, titles, dates, degrees, or skills the candidate doesn't have.
+- Surface JD-relevant experience first; use JD keywords naturally in bullets.
+- Each experience entry: 3-6 achievement-oriented bullets (start with strong verbs, quantify where possible).
+- Group skills into 3-6 logical categories for a clean table.
+- If a field is unknown, use an empty string or empty array — never fabricate.`,
+      },
+    ],
+  });
+
+  const text = (message.content[0] as { text: string }).text.trim();
+  // Strip accidental code fences just in case.
+  const json = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  return JSON.parse(json) as TailoredResumeDoc;
+}
 
 /**
  * Tailor a resume to a pasted job description (no Job record needed).
