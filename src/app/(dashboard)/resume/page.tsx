@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Upload, FileText, Save, Loader2, Lock, Trash2, Clock } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { Upload, FileText, Save, Loader2, Trash2, Clock } from "lucide-react";
 import { AtsPie } from "@/components/jobs/AtsPie";
+import { JdTailor } from "@/components/resume/JdTailor";
 
 function formatTimestamp(iso: string): string {
   return new Date(iso).toLocaleString(undefined, {
@@ -16,8 +16,6 @@ function formatTimestamp(iso: string): string {
 }
 
 export default function ResumePage() {
-  const { data: session } = useSession();
-  const isPro = session?.user.plan !== "FREE";
   const [content, setContent] = useState("");
   const [fileName, setFileName] = useState("my_resume.txt");
   const [saving, setSaving] = useState(false);
@@ -172,37 +170,8 @@ export default function ResumePage() {
         )}
       </div>
 
-      {/* Pro AI Tailor section */}
-      <div className={`glass rounded-xl p-5 ${!isPro ? "opacity-80" : ""}`}>
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <h2 className="text-sm font-semibold text-foreground">AI Resume Tailoring</h2>
-              {!isPro && (
-                <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
-                  <Lock className="w-2.5 h-2.5" /> Pro
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              AI automatically tailors your resume for each job application to maximize match score.
-            </p>
-          </div>
-        </div>
-        {!isPro && (
-          <div className="mt-4 p-4 rounded-lg bg-primary/5 border border-primary/20 text-center">
-            <p className="text-sm text-muted-foreground mb-3">
-              Upgrade to Pro to enable AI-powered resume tailoring and auto-apply features.
-            </p>
-            <a
-              href="/settings?tab=billing"
-              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-violet-600 text-white text-sm font-medium rounded-lg hover:from-purple-500 hover:to-violet-500 transition"
-            >
-              Upgrade to Pro
-            </a>
-          </div>
-        )}
-      </div>
+      {/* AI: tailor resume to a pasted JD */}
+      <JdTailor hasResume={hasResume} />
     </div>
   );
 }

@@ -11,8 +11,15 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: { allowedOrigins: ["localhost:3000"] },
   },
-  // Keep PDF/DOCX parsers as runtime Node modules instead of bundling them.
-  serverExternalPackages: ["pdf-parse", "mammoth"],
+  // Keep heavy server-only SDKs as runtime Node modules instead of bundling them
+  // (bundling the AWS SDK in particular makes route compiles hang).
+  serverExternalPackages: [
+    "pdf-parse",
+    "mammoth",
+    "@aws-sdk/client-s3",
+    "@aws-sdk/s3-request-presigner",
+    "nodemailer",
+  ],
 };
 
 export default nextConfig;

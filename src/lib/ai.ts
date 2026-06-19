@@ -4,6 +4,43 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+/**
+ * Tailor a resume to a pasted job description (no Job record needed).
+ * Returns clean, ATS-friendly resume text.
+ */
+export async function tailorResumeToJD(
+  resumeContent: string,
+  jobDescription: string
+): Promise<string> {
+  const message = await anthropic.messages.create({
+    model: "claude-sonnet-4-6",
+    max_tokens: 4096,
+    messages: [
+      {
+        role: "user",
+        content: `You are an expert resume writer. Rewrite the candidate's resume so it is tailored to the job description below, while staying truthful and ATS-friendly.
+
+JOB DESCRIPTION:
+${jobDescription}
+
+ORIGINAL RESUME:
+${resumeContent}
+
+Instructions:
+1. Reorder and rephrase to surface the experience and skills most relevant to this JD.
+2. Naturally incorporate keywords/technologies from the JD that the candidate genuinely has.
+3. Never invent experience, employers, dates, or credentials.
+4. Keep a clean structure: a short summary, skills, experience (with bullet points), education.
+5. Return ONLY the finished resume as plain text. No commentary, no markdown fences.
+
+Tailored Resume:`,
+      },
+    ],
+  });
+
+  return (message.content[0] as { text: string }).text.trim();
+}
+
 export async function tailorResume(
   resumeContent: string,
   jobDescription: string,

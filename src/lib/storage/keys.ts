@@ -41,4 +41,9 @@ export function coverLetterKey(userId: string, jobId: string): string {
   return `${ENV_PREFIX}/resumes/${userId}/cover-letters/${jobId}/${ulid()}.txt`;
 }
 
+/** Key for a resume tailored to a pasted JD (no job record). */
+export function jdTailoredKey(userId: string, ext = "txt"): string {
+  return `${ENV_PREFIX}/resumes/${userId}/jd-tailored/${ulid()}.${ext}`;
+}
+
 export const storageEnvPrefix = ENV_PREFIX;

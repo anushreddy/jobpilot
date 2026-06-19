@@ -26,6 +26,7 @@ model User {
   applications Application[]
   autoApply    AutoApplyConfig?
   linkedAccounts LinkedAccount[]
+  generatedResumes GeneratedResume[]
 
   @@map("users")
 }
@@ -98,6 +99,20 @@ model UserPreferences {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_preferences")
+}
+
+model GeneratedResume {
+  id              String   @id @default(cuid())
+  userId          String
+  jobDescription  String   @db.Text
+  content         String   @db.Text
+  storageKey      String?
+  createdAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("generated_resumes")
 }
 
 model Resume {
