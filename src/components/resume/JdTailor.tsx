@@ -256,48 +256,52 @@ function buildDocHtml(doc: TailoredResumeDoc): string {
   const esc = (s: string) =>
     s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   const li = (arr: string[]) =>
-    arr.map((b) => `<li style="margin-bottom:5px;line-height:1.45;">${esc(b)}</li>`).join("");
+    arr.map((b) => `<li style="margin-bottom:5px;">${esc(b)}</li>`).join("");
 
   const skillsRows = doc.skills
     .map(
       (s) =>
-        `<tr><td style="padding:6px 10px;border:1px solid #e2e2e2;font-weight:bold;width:28%;vertical-align:top;">${esc(
+        `<tr><td width="28%" style="padding:6px 10px;border:1px solid #e2e2e2;font-weight:bold;vertical-align:top;">${esc(
           s.category
         )}</td><td style="padding:6px 10px;border:1px solid #e2e2e2;">${esc(s.items.join(", "))}</td></tr>`
     )
     .join("");
 
+  // Two-column header row that aligns reliably in Word (table with fixed layout,
+  // right column holds the period and never collides with the left text).
+  const titleRow = (left: string, period: string, bold: boolean, size: string) => `
+    <table width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;margin:12px 0 2px;">
+      <tr>
+        <td valign="top" style="font-weight:${bold ? "bold" : "normal"};font-size:${size};">${left}</td>
+        <td width="110" valign="top" align="right" style="color:#666;font-size:10pt;">${esc(period)}</td>
+      </tr>
+    </table>`;
+
   const expBlocks = doc.experience
     .map(
       (e) => `
-      <table style="width:100%;margin:12px 0 2px;"><tr>
-        <td style="font-weight:bold;font-size:11.5pt;">${esc(e.role)} · ${esc(e.company)}</td>
-        <td style="text-align:right;color:#666;font-size:10pt;white-space:nowrap;">${esc(e.period)}</td>
-      </tr></table>
+      ${titleRow(`${esc(e.role)} · ${esc(e.company)}`, e.period, true, "11.5pt")}
       ${e.location ? `<p style="margin:0 0 4px;color:#888;font-size:10pt;">${esc(e.location)}</p>` : ""}
-      <ul style="margin:4px 0 14px;padding-left:20px;">${li(e.bullets)}</ul>`
+      <ul style="margin:4px 0 14px;">${li(e.bullets)}</ul>`
     )
     .join("");
 
   const eduBlocks = doc.education
-    .map(
-      (ed) =>
-        `<p style="margin:4px 0;">${esc(ed.degree)}, ${esc(ed.school)} <span style="color:#666;">(${esc(ed.period)})</span></p>`
-    )
+    .map((ed) => titleRow(`${esc(ed.degree)}, ${esc(ed.school)}`, ed.period, false, "11pt"))
     .join("");
 
   const heading = (t: string) =>
-    `<h3 style="border-bottom:1.5px solid #888;text-transform:uppercase;font-size:11.5pt;letter-spacing:0.5px;color:#333;margin:20px 0 8px;padding-bottom:3px;">${t}</h3>`;
+    `<p style="border-bottom:1.5px solid #888;text-transform:uppercase;font-size:11.5pt;font-weight:bold;letter-spacing:0.5px;color:#333;margin:18px 0 8px;padding-bottom:3px;">${t}</p>`;
 
-  return `<!DOCTYPE html><html xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"></head>
-  <body style="font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#222;line-height:1.5;margin:48px 56px;">
-    <div style="text-align:center;margin-bottom:6px;">
-      <div style="font-size:21pt;font-weight:bold;letter-spacing:0.5px;">${esc(doc.name)}</div>
-      ${doc.title ? `<div style="font-size:11pt;color:#555;margin-top:2px;">${esc(doc.title)}</div>` : ""}
-      <div style="color:#666;font-size:10pt;margin-top:3px;">${esc(doc.contact)}</div>
-    </div>
-    ${doc.summary.length ? heading("Summary") + `<ul style="padding-left:20px;margin:4px 0;">${li(doc.summary)}</ul>` : ""}
-    ${doc.skills.length ? heading("Skills") + `<table style="border-collapse:collapse;width:100%;">${skillsRows}</table>` : ""}
+  return `<!DOCTYPE html><html xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8">
+  <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#222;} ul{margin-top:4px;margin-bottom:8px;} li{margin-bottom:5px;}</style>
+  </head>
+  <body>
+    <p align="center" style="margin:0;font-size:21pt;font-weight:bold;">${esc(doc.name)}</p>
+    ${doc.title ? `<p align="center" style="margin:2px 0 0;font-size:11pt;color:#555;">${esc(doc.title)}</p>` : ""}
+    <p align="center" style="margin:3px 0 8px;color:#666;font-size:10pt;">${esc(doc.contact)}</p>
+    ${doc.summary.length ? heading("Summary") + `<ul>${li(doc.summary)}</ul>` : ""}
+    ${doc.skills.length ? heading("Skills") + `<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">${skillsRows}</table>` : ""}
     ${doc.experience.length ? heading("Experience") + expBlocks : ""}
     ${doc.education.length ? heading("Education") + eduBlocks : ""}
   </body></html>`;
@@ -375,39 +379,51 @@ function renderPdf(doc: TailoredResumeDoc, JsPDF: any, autoTable: any) {
     y = (pdf as any).lastAutoTable.finalY + 6;
   }
 
+  // Renders a "<left bold/normal>  ............  <period>" row where the left
+  // text wraps onto multiple lines if long, and the right-aligned period on the
+  // first line always stays visible (its width is reserved out of the wrap).
+  const titleRow = (left: string, period: string, bold: boolean, size: number) => {
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(9);
+    const periodW = period ? pdf.getTextWidth(period) : 0;
+    pdf.setFont("helvetica", bold ? "bold" : "normal");
+    pdf.setFontSize(size);
+    const leftLines = pdf.splitTextToSize(left, width - periodW - 16) as string[];
+    ensure(leftLines.length * LH);
+    pdf.text(leftLines, margin, y);
+    if (period) {
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(9);
+      pdf.setTextColor(110);
+      pdf.text(period, margin + width, y, { align: "right" });
+      pdf.setTextColor(34);
+    }
+    y += leftLines.length * LH;
+  };
+
   if (doc.experience?.length) {
     heading("Experience");
     doc.experience.forEach((e) => {
       ensure(24);
-      pdf.setFont("helvetica", "bold");
-      pdf.setFontSize(11);
-      pdf.text(`${e.role} · ${e.company}`, margin, y);
-      pdf.setFont("helvetica", "normal");
-      pdf.setFontSize(9);
-      pdf.setTextColor(110);
-      pdf.text(e.period || "", margin + width, y, { align: "right" });
-      y += 13;
+      titleRow(`${e.role} · ${e.company}`, e.period || "", true, 11);
       if (e.location) {
+        pdf.setFont("helvetica", "normal");
         pdf.setFontSize(9);
+        pdf.setTextColor(110);
         pdf.text(e.location, margin, y);
+        pdf.setTextColor(34);
         y += 12;
       }
-      pdf.setTextColor(34);
+      y += 2;
       bullets(e.bullets);
     });
   }
 
   if (doc.education?.length) {
     heading("Education");
-    pdf.setFont("helvetica", "normal");
-    pdf.setFontSize(10);
     doc.education.forEach((ed) => {
-      ensure(16);
-      pdf.text(`${ed.degree}, ${ed.school}`, margin, y);
-      pdf.setTextColor(110);
-      pdf.text(ed.period || "", margin + width, y, { align: "right" });
-      pdf.setTextColor(34);
-      y += LH;
+      titleRow(`${ed.degree}, ${ed.school}`, ed.period || "", false, 10);
+      y += 4;
     });
   }
 
