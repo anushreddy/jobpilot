@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, ExternalLink, Trash2, FileText } from "lucide-react";
+import { Search, ExternalLink, Trash2, FileText, Download } from "lucide-react";
 import { cn, statusColor, statusLabel, timeAgo, formatSalary } from "@/lib/utils";
 import { AtsPie } from "@/components/jobs/AtsPie";
 import type { Application } from "@/types";
@@ -124,6 +124,7 @@ export default function MyJobsPage() {
               <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Location</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Salary</th>
               <th className="text-center px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">ATS</th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Resume</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Applied</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
               <th className="px-4 py-3" />
@@ -133,7 +134,7 @@ export default function MyJobsPage() {
             {loading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="border-b border-border/50">
-                  {Array.from({ length: 8 }).map((_, j) => (
+                  {Array.from({ length: 9 }).map((_, j) => (
                     <td key={j} className="px-4 py-3">
                       <div className="h-4 bg-secondary rounded animate-pulse" />
                     </td>
@@ -142,7 +143,7 @@ export default function MyJobsPage() {
               ))
             ) : applications.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-muted-foreground text-sm">
+                <td colSpan={9} className="px-4 py-12 text-center text-muted-foreground text-sm">
                   No applications found.{" "}
                   <a href="/jobs" className="text-primary hover:underline">Browse jobs →</a>
                 </td>
@@ -167,6 +168,31 @@ export default function MyJobsPage() {
                     {app.atsScore != null ? (
                       <div className="flex justify-center">
                         <AtsPie score={app.atsScore} />
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    {app.resumeLabel ? (
+                      <div className="flex items-center gap-1.5">
+                        <span className={cn(
+                          "text-[10px] font-semibold px-2 py-0.5 rounded-full border",
+                          app.resumeLabel === "Tailored"
+                            ? "bg-primary/15 text-primary border-primary/25"
+                            : "bg-secondary text-muted-foreground border-border"
+                        )}>
+                          {app.resumeLabel}
+                        </span>
+                        {app.hasResumeFile && (
+                          <a
+                            href={`/api/applications/${app.id}/resume`}
+                            className="p-1 text-muted-foreground hover:text-primary hover:bg-secondary rounded transition"
+                            title="Download resume used"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                          </a>
+                        )}
                       </div>
                     ) : (
                       <span className="text-xs text-muted-foreground">—</span>

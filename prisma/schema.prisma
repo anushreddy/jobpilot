@@ -184,6 +184,8 @@ model Application {
   matchScore      Int?
   autoApplied     Boolean           @default(false)
   resumeUsed      String?           @db.Text
+  resumeLabel     String?
+  resumeFileName  String?
   coverLetter     String?           @db.Text
   notes           String?
   appliedAt       DateTime          @default(now())

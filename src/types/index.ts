@@ -70,6 +70,8 @@ export interface Application {
   matchScore: number | null;
   atsScore?: number | null;
   autoApplied: boolean;
+  resumeLabel?: string | null;
+  hasResumeFile?: boolean;
   appliedAt: string;
   updatedAt: string;
   job: Job;

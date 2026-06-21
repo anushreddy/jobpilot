@@ -37,17 +37,27 @@ export async function GET(req: Request) {
     db.resume.findUnique({ where: { userId: session.user.id } }),
   ]);
 
-  // Compute an ATS score per application only when a resume exists.
-  const withAts = applications.map((app) => ({
-    ...app,
-    atsScore: resume
-      ? scoreResumeForJob(resume.content, {
-          skills: app.job.skills,
-          description: app.job.description,
-          title: app.job.title,
-        })
-      : null,
-  }));
+  // Prefer the score captured at apply-time (reflects the resume actually used —
+  // tailored or regular). Fall back to scoring the current resume for older
+  // applications that predate score capture.
+  const withAts = applications.map((app) => {
+    // Don't ship the full resume text in the list payload — expose a flag and
+    // let the per-application download endpoint stream it on demand.
+    const { resumeUsed, ...rest } = app;
+    return {
+      ...rest,
+      hasResumeFile: Boolean(resumeUsed),
+      atsScore:
+        app.matchScore ??
+        (resume
+          ? scoreResumeForJob(resume.content, {
+              skills: app.job.skills,
+              description: app.job.description,
+              title: app.job.title,
+            })
+          : null),
+    };
+  });
 
   return NextResponse.json({
     applications: withAts,
@@ -61,7 +71,7 @@ export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { jobId, coverLetter, resumeUsed } = await req.json();
+  const { jobId, coverLetter, tailored, tailoredContent } = await req.json();
 
   const existing = await db.application.findUnique({
     where: { userId_jobId: { userId: session.user.id, jobId } },
@@ -70,13 +80,34 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Already applied" }, { status: 409 });
   }
 
+  const [job, resume] = await Promise.all([
+    db.job.findUnique({ where: { id: jobId } }),
+    db.resume.findUnique({ where: { userId: session.user.id } }),
+  ]);
+  if (!job) return NextResponse.json({ error: "Job not found" }, { status: 404 });
+
+  // Capture the ATS match score at apply-time, based on which resume was used.
+  // Tailored → score the tailored content; Regular → score the current resume.
+  const scoringText = tailored && tailoredContent ? tailoredContent : resume?.content ?? "";
+  const matchScore = scoringText
+    ? scoreResumeForJob(scoringText, {
+        skills: job.skills,
+        description: job.description,
+        title: job.title,
+      })
+    : null;
+
   const application = await db.application.create({
     data: {
       userId: session.user.id,
       jobId,
       status: "APPLIED",
       coverLetter,
-      resumeUsed,
+      matchScore,
+      // Snapshot the exact resume used so it's downloadable later.
+      resumeUsed: scoringText || null,
+      resumeLabel: tailored && tailoredContent ? "Tailored" : "Regular",
+      resumeFileName: resume?.fileName ?? null,
     },
     include: { job: true },
   });

@@ -19,9 +19,13 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
   const { id } = await params;
   const session = await getServerSession(authOptions);
 
-  const [job, resume] = await Promise.all([
+  const [job, resume, existingApplication] = await Promise.all([
     db.job.findUnique({ where: { id } }),
     db.resume.findUnique({ where: { userId: session!.user.id } }),
+    db.application.findUnique({
+      where: { userId_jobId: { userId: session!.user.id, jobId: id } },
+      select: { id: true },
+    }),
   ]);
 
   if (!job) notFound();
@@ -128,7 +132,9 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
         <div className="lg:col-span-2">
           <div className="sticky top-20">
             <JobDetailTailor
+              jobId={job.id}
               hasResume={Boolean(resume?.content)}
+              alreadyApplied={Boolean(existingApplication)}
               jobTitle={job.title}
               company={job.company}
               jobDescription={job.description}

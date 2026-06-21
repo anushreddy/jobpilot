@@ -12,9 +12,10 @@ interface Props {
   compact?: boolean;       // hide the heading/JD box label when embedded
   jobSkills?: string[];    // when tailoring for a specific job: its required skills
   jobTitle?: string;       // and its title — used for job-aware match scoring
+  onDocChange?: (doc: TailoredResumeDoc | null) => void; // lift the tailored result
 }
 
-export function JdTailor({ hasResume, onSaved, presetJd, compact, jobSkills, jobTitle }: Props) {
+export function JdTailor({ hasResume, onSaved, presetJd, compact, jobSkills, jobTitle, onDocChange }: Props) {
   const [jd, setJd] = useState(presetJd ?? "");
   const [doc, setDoc] = useState<TailoredResumeDoc | null>(null);
   const [matchScore, setMatchScore] = useState<number | null>(null);
@@ -44,6 +45,7 @@ export function JdTailor({ hasResume, onSaved, presetJd, compact, jobSkills, job
       }
       setDoc(data.doc);
       setMatchScore(data.matchScore ?? null);
+      onDocChange?.(data.doc);
     } catch {
       setError("Generation failed. Please try again.");
     } finally {
