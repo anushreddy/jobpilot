@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { tailorResumeStructured } from "@/lib/ai";
 import { getStorage, jdTailoredKey, originalResumeKey } from "@/lib/storage";
 import { resumeDocToText } from "@/types/resume";
-import { scoreResumeAgainstJD, scoreResumeQuality } from "@/lib/ats";
+import { scoreResumeAgainstJD, scoreResumeForJob, scoreResumeQuality } from "@/lib/ats";
 
 function linkedinUrl(username: string | null): string | null {
   if (!username) return null;
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { jobDescription } = await req.json();
+  const { jobDescription, jobSkills, jobTitle } = await req.json();
   if (!jobDescription || jobDescription.trim().length < 30) {
     return NextResponse.json({ error: "Please paste a fuller job description" }, { status: 400 });
   }
@@ -37,8 +37,12 @@ export async function POST(req: Request) {
 
   try {
     const doc = await tailorResumeStructured(resume.content, jobDescription, li ?? undefined);
-    // Match score of the tailored resume against the JD.
-    const matchScore = scoreResumeAgainstJD(resumeDocToText(doc), jobDescription);
+    const tailoredText = resumeDocToText(doc);
+    // Use the job-aware scorer when we have the job's skills (matches the score
+    // shown on the job details page), else fall back to plain JD keyword match.
+    const matchScore = Array.isArray(jobSkills) && jobSkills.length
+      ? scoreResumeForJob(tailoredText, { skills: jobSkills, description: jobDescription, title: jobTitle ?? "" })
+      : scoreResumeAgainstJD(tailoredText, jobDescription);
     return NextResponse.json({ doc, matchScore });
   } catch (err) {
     console.error("[TAILOR_JD]", err);

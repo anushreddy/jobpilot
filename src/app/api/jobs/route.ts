@@ -22,11 +22,16 @@ export async function GET(req: Request) {
   const where: Record<string, unknown> = { isActive: true };
 
   if (search) {
-    where.OR = [
-      { title: { contains: search, mode: "insensitive" } },
-      { company: { contains: search, mode: "insensitive" } },
-      { description: { contains: search, mode: "insensitive" } },
-    ];
+    // Match on the job TITLE and COMPANY only (not the description, which made
+    // searches like "architect" return engineer roles mentioning "architecture").
+    // Every word must match so multi-word searches ("senior architect") are precise.
+    const terms = search.trim().split(/\s+/).filter(Boolean);
+    where.AND = terms.map((t) => ({
+      OR: [
+        { title: { contains: t, mode: "insensitive" } },
+        { company: { contains: t, mode: "insensitive" } },
+      ],
+    }));
   }
   if (location) where.location = { contains: location, mode: "insensitive" };
   if (platform) where.platform = platform;

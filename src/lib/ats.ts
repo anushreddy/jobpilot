@@ -32,27 +32,22 @@ export function scoreResumeForJob(
   if (!resumeContent.trim()) return 0;
 
   const resumeTokens = tokenize(resumeContent);
+  const covers = (phrase: string) =>
+    phrase.toLowerCase().split(/\s+/).every((part) => resumeTokens.has(part));
 
-  // 1. Skill keyword coverage (60% weight)
+  // 1. Required-skill coverage (70% weight) — the highest-signal ATS factor.
   const jobSkills = job.skills.map((s) => s.toLowerCase());
-  const matchedSkills = jobSkills.filter((skill) =>
-    skill.split(/\s+/).every((part) => resumeTokens.has(part))
-  );
-  const skillScore =
-    jobSkills.length > 0 ? matchedSkills.length / jobSkills.length : 0.5;
+  const skillCov = jobSkills.length
+    ? jobSkills.filter(covers).length / jobSkills.length
+    : 0.5;
 
-  // 2. Title keyword presence (15% weight)
-  const titleTokens = tokenize(job.title);
-  const titleMatched = [...titleTokens].filter((t) => resumeTokens.has(t)).length;
-  const titleScore = titleTokens.size > 0 ? titleMatched / titleTokens.size : 0;
+  // 2. JD keyword coverage (30% weight).
+  const jdKeys = extractJDKeywords(job.description, 20);
+  const jdCov = jdKeys.length ? jdKeys.filter(covers).length / jdKeys.length : 0;
 
-  // 3. ATS section completeness (25% weight)
-  const lower = resumeContent.toLowerCase();
-  const sectionsFound = ATS_SECTIONS.filter((s) => lower.includes(s)).length;
-  const sectionScore = sectionsFound / ATS_SECTIONS.length;
-
-  const raw = skillScore * 0.6 + titleScore * 0.15 + sectionScore * 0.25;
-  return Math.round(Math.min(99, Math.max(5, raw * 100)));
+  const raw = skillCov * 0.7 + jdCov * 0.3;
+  // Curve: full skills + ~70% JD keywords → ~90+.
+  return Math.round(Math.min(99, Math.max(15, raw * 90 + 9)));
 }
 
 /** Overall ATS health score for the resume itself (section + length quality). */
@@ -79,6 +74,27 @@ const STOPWORDS = new Set([
 ]);
 
 /**
+ * Extract the most significant keywords from a job description, most-frequent
+ * first. Used to steer the AI toward including real JD terminology so the
+ * tailored resume scores highly.
+ */
+export function extractJDKeywords(jobDescription: string, limit = 24): string[] {
+  const words = jobDescription
+    .toLowerCase()
+    .replace(/[^a-z0-9+#. ]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length > 2 && !STOPWORDS.has(w) && !/^\d+$/.test(w));
+
+  const freq = new Map<string, number>();
+  for (const w of words) freq.set(w, (freq.get(w) ?? 0) + 1);
+
+  return [...freq.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([w]) => w);
+}
+
+/**
  * Match score (0-100) between a resume and a pasted job description.
  * Measures how many meaningful JD keywords appear in the resume.
  */
@@ -86,16 +102,18 @@ export function scoreResumeAgainstJD(resumeContent: string, jobDescription: stri
   if (!resumeContent.trim() || !jobDescription.trim()) return 0;
 
   const resumeTokens = tokenize(resumeContent);
-  const jdTokens = [...tokenize(jobDescription)].filter(
-    (t) => t.length > 2 && !STOPWORDS.has(t) && !/^\d+$/.test(t)
-  );
-  if (jdTokens.length === 0) return 0;
 
-  const unique = [...new Set(jdTokens)];
-  const matched = unique.filter((t) => resumeTokens.has(t)).length;
-  const coverage = matched / unique.length;
+  // Score against the JD's most SIGNIFICANT keywords (the same set the AI is
+  // instructed to weave in), not every word — this is what an ATS actually
+  // weights, and lets a well-tailored resume legitimately reach 90+.
+  const keywords = extractJDKeywords(jobDescription, 30);
+  if (keywords.length === 0) return 0;
 
-  // Map raw coverage to a friendlier 40-99 band (a tailored resume rarely
-  // contains every JD word, so 100% coverage isn't expected).
-  return Math.round(Math.min(99, Math.max(20, coverage * 130 + 25)));
+  const matched = keywords.filter((k) =>
+    k.split(/\s+/).every((part) => resumeTokens.has(part))
+  ).length;
+  const coverage = matched / keywords.length;
+
+  // Generous curve: ~80% keyword coverage → ~90 score.
+  return Math.round(Math.min(99, Math.max(20, coverage * 95 + 16)));
 }

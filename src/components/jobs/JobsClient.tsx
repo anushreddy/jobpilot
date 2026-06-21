@@ -97,7 +97,12 @@ export function JobsClient({ initialJobs, total, isPro }: Props) {
           </div>
         ) : jobs.length === 0 ? (
           <div className="glass rounded-xl p-12 text-center">
-            <p className="text-muted-foreground">No jobs found. Try adjusting your filters.</p>
+            <p className="text-sm font-medium text-foreground mb-1">No results found</p>
+            <p className="text-xs text-muted-foreground">
+              {search
+                ? `No jobs match "${search}". Try a different title or keyword.`
+                : "Try adjusting your filters."}
+            </p>
           </div>
         ) : (
           <div className={cn("gap-3", view === "grid" ? "grid grid-cols-2" : "flex flex-col")}>

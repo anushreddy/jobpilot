@@ -8,10 +8,14 @@ import type { TailoredResumeDoc } from "@/types/resume";
 interface Props {
   hasResume: boolean;
   onSaved?: () => void;
+  presetJd?: string;       // prefill the JD (e.g. from a job details page)
+  compact?: boolean;       // hide the heading/JD box label when embedded
+  jobSkills?: string[];    // when tailoring for a specific job: its required skills
+  jobTitle?: string;       // and its title — used for job-aware match scoring
 }
 
-export function JdTailor({ hasResume, onSaved }: Props) {
-  const [jd, setJd] = useState("");
+export function JdTailor({ hasResume, onSaved, presetJd, compact, jobSkills, jobTitle }: Props) {
+  const [jd, setJd] = useState(presetJd ?? "");
   const [doc, setDoc] = useState<TailoredResumeDoc | null>(null);
   const [matchScore, setMatchScore] = useState<number | null>(null);
   const [generating, setGenerating] = useState(false);
@@ -31,7 +35,7 @@ export function JdTailor({ hasResume, onSaved }: Props) {
       const res = await fetch("/api/resume/tailor-jd", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobDescription: jd }),
+        body: JSON.stringify({ jobDescription: jd, jobSkills, jobTitle }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -97,12 +101,14 @@ export function JdTailor({ hasResume, onSaved }: Props) {
     <div className="glass rounded-xl p-5 space-y-4">
       <div className="flex items-center gap-2">
         <Sparkles className="w-4 h-4 text-primary" />
-        <h2 className="text-sm font-semibold text-foreground">Tailor resume to a job description</h2>
+        <h2 className="text-sm font-semibold text-foreground">
+          {compact ? "Tailor your resume to this job" : "Tailor resume to a job description"}
+        </h2>
       </div>
 
       <div>
         <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-          Paste the job description
+          {compact ? "Job description (editable)" : "Paste the job description"}
         </label>
         <textarea
           value={jd}
@@ -165,8 +171,8 @@ export function JdTailor({ hasResume, onSaved }: Props) {
             </div>
           </div>
 
-          {/* Formatted preview */}
-          <ResumePreview doc={doc} />
+          {/* Formatted preview (hidden in compact / job-detail mode) */}
+          {!compact && <ResumePreview doc={doc} />}
         </div>
       )}
     </div>

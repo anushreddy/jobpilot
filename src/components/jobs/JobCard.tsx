@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Bookmark, ExternalLink, Zap, MapPin, Building2 } from "lucide-react";
 import { cn, platformColor, formatSalary, timeAgo } from "@/lib/utils";
 import { AtsPie } from "./AtsPie";
@@ -23,6 +24,7 @@ const PLATFORM_LABEL: Record<string, string> = {
 };
 
 export function JobCard({ job, isPro }: Props) {
+  const router = useRouter();
   const [applying, setApplying] = useState(false);
   const [applied, setApplied] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -50,7 +52,10 @@ export function JobCard({ job, isPro }: Props) {
     "text-yellow-400";
 
   return (
-    <div className="glass rounded-xl p-4 hover:border-primary/30 transition-all group">
+    <div
+      onClick={() => router.push(`/jobs/${job.id}`)}
+      className="glass rounded-xl p-4 hover:border-primary/30 transition-all group cursor-pointer"
+    >
       <div className="flex items-start gap-3">
         {/* Company logo */}
         <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/20 to-violet-600/10 border border-primary/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
@@ -116,7 +121,10 @@ export function JobCard({ job, isPro }: Props) {
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50">
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="flex items-center justify-between mt-3 pt-3 border-t border-border/50"
+      >
         <div className="flex items-center gap-2">
           <span
             className="text-[10px] font-semibold px-2 py-0.5 rounded-full text-white"
@@ -143,6 +151,13 @@ export function JobCard({ job, isPro }: Props) {
           >
             <ExternalLink className="w-3.5 h-3.5" />
           </a>
+
+          <button
+            onClick={() => router.push(`/jobs/${job.id}`)}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium text-foreground border border-border hover:bg-secondary transition"
+          >
+            Details
+          </button>
 
           {isPro ? (
             <button

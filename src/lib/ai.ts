@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { TailoredResumeDoc } from "@/types/resume";
+import { extractJDKeywords } from "@/lib/ats";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -14,16 +15,21 @@ export async function tailorResumeStructured(
   jobDescription: string,
   linkedinUrl?: string
 ): Promise<TailoredResumeDoc> {
+  const keywords = extractJDKeywords(jobDescription, 30);
+
   const message = await anthropic.messages.create({
     model: "claude-sonnet-4-6",
     max_tokens: 8192,
     messages: [
       {
         role: "user",
-        content: `You are an expert resume writer. Restructure the candidate's EXISTING resume to better target the job description, then return it as STRUCTURED JSON.
+        content: `You are an expert resume writer and ATS optimization specialist. Restructure the candidate's EXISTING resume to target the job description for maximum ATS keyword match, then return it as STRUCTURED JSON.
 
 JOB DESCRIPTION:
 ${jobDescription}
+
+KEY JD KEYWORDS (incorporate as many of these as are truthful for this candidate — in the skills table, summary, and experience bullets, using the exact wording):
+${keywords.join(", ")}
 
 ORIGINAL RESUME:
 ${resumeContent}
@@ -46,6 +52,9 @@ IMPORTANT rules:
 - "name" is the person's name only. Never put the target job title in the name field.
 ${linkedinUrl ? `- Include this LinkedIn URL in the contact line: ${linkedinUrl}` : "- Only include contact details present in the original resume."}
 - Never invent employers, titles, dates, degrees, or skills the candidate doesn't have.
+- ATS OPTIMIZATION (critical): weave the KEY JD KEYWORDS above into the resume using the JD's EXACT wording (e.g. "Kubernetes" not "K8s"). Cover AS MANY as are plausibly truthful — aim for 85%+ of the listed keywords appearing verbatim across the skills table, summary, and experience bullets.
+- Add an explicit "Technical Skills" / "Core Competencies" skills category that lists the JD's core technologies, tools, and methodologies the candidate has — this is the highest-impact place for ATS keywords, so include every relevant keyword there.
+- Mirror the JD's key responsibilities: ensure each major responsibility named in the JD is reflected by at least one matching bullet in the candidate's experience (truthfully).
 - Group skills into logical categories for a clean table.
 - If a field is unknown, use an empty string or empty array.`,
       },
