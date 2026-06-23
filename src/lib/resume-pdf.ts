@@ -5,7 +5,7 @@ import type { TailoredResumeDoc } from "@/types/resume";
  * job-tailor preview). Works in both the browser and Node (server routes),
  * so a saved resume can be re-rendered server-side for download.
  */
-export async function buildResumePdf(doc: TailoredResumeDoc): Promise<Uint8Array> {
+export async function buildResumePdf(doc: TailoredResumeDoc): Promise<ArrayBuffer> {
   const { jsPDF } = await import("jspdf");
   const autoTable = (await import("jspdf-autotable")).default;
 
@@ -122,7 +122,7 @@ export async function buildResumePdf(doc: TailoredResumeDoc): Promise<Uint8Array
     });
   }
 
-  return new Uint8Array(pdf.output("arraybuffer"));
+  return pdf.output("arraybuffer") as ArrayBuffer;
 }
 
 /** Renders a structured resume to Word-compatible HTML (.doc). */

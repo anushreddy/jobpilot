@@ -10,6 +10,11 @@ function esc(s: string) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+// Buffer → a standalone ArrayBuffer (valid response body, avoids SharedArrayBuffer typing).
+function toArrayBuffer(b: Buffer): ArrayBuffer {
+  return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer;
+}
+
 const MIME: Record<string, string> = {
   pdf: "application/pdf",
   doc: "application/msword",
@@ -47,7 +52,7 @@ export async function GET(_req: Request, context: RouteContext) {
         const name = app.resumeFileName || "resume";
         const ext = name.split(".").pop()?.toLowerCase() ?? "";
         const type = MIME[ext] ?? "application/octet-stream";
-        return new NextResponse(new Blob([new Uint8Array(bytes)], { type }), {
+        return new NextResponse(toArrayBuffer(bytes), {
           headers: {
             "Content-Type": type,
             "Content-Disposition": `attachment; filename="${safe}-${name}"`,
@@ -87,7 +92,7 @@ export async function GET(_req: Request, context: RouteContext) {
 
   if (doc) {
     const pdf = await buildResumePdf(doc);
-    return new NextResponse(new Blob([pdf], { type: "application/pdf" }), {
+    return new NextResponse(pdf, {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="${safe}-tailored.pdf"`,

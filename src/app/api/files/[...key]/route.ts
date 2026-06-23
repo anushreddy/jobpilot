@@ -24,7 +24,11 @@ export async function GET(_req: Request, context: RouteContext) {
 
   try {
     const buffer = await getStorage().get(key);
-    return new NextResponse(new Blob([new Uint8Array(buffer)]), {
+    const body = buffer.buffer.slice(
+      buffer.byteOffset,
+      buffer.byteOffset + buffer.byteLength
+    ) as ArrayBuffer;
+    return new NextResponse(body, {
       headers: {
         "Content-Type": "application/octet-stream",
         "Content-Disposition": `inline; filename="${key.split("/").pop()}"`,

@@ -6,6 +6,10 @@ import { getStorage } from "@/lib/storage";
 import { buildResumePdf } from "@/lib/resume-pdf";
 import type { TailoredResumeDoc } from "@/types/resume";
 
+function toArrayBuffer(b: Buffer): ArrayBuffer {
+  return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer;
+}
+
 const MIME: Record<string, string> = {
   pdf: "application/pdf",
   doc: "application/msword",
@@ -43,7 +47,7 @@ export async function GET(_req: Request, context: RouteContext) {
     try {
       const doc = JSON.parse(bytes.toString("utf-8")) as TailoredResumeDoc;
       const pdf = await buildResumePdf(doc);
-      return new NextResponse(new Blob([pdf], { type: "application/pdf" }), {
+      return new NextResponse(pdf, {
         headers: {
           "Content-Type": "application/pdf",
           "Content-Disposition": `attachment; filename="${safe}.pdf"`,
@@ -57,7 +61,7 @@ export async function GET(_req: Request, context: RouteContext) {
   // Original (or fallback): stream the stored file with its native type.
   const ext = saved.name.split(".").pop()?.toLowerCase() ?? "";
   const type = MIME[ext] ?? "application/octet-stream";
-  return new NextResponse(new Blob([new Uint8Array(bytes)], { type }), {
+  return new NextResponse(toArrayBuffer(bytes), {
     headers: {
       "Content-Type": type,
       "Content-Disposition": `attachment; filename="${saved.name}"`,
