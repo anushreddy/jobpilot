@@ -50,9 +50,10 @@ IMPORTANT rules:
 - PRESERVE the candidate's real content. Keep EVERY job, employer, date, and education entry from the original resume — do not drop or merge any.
 - Keep each role's full set of responsibilities/achievements. You may lightly rephrase bullets to mirror JD wording, but do NOT shorten or summarize away detail. Aim to keep roughly the same number of bullets per role as the original (or more), not fewer.
 - "name" is the person's name only. Never put the target job title in the name field.
+- SUMMARY SCOPE (critical): The summary describes the candidate's own experience and skills — NEVER the employer. Do not mention the company name, team name, product name, or phrases like "ideal for," "perfect fit for," or "thrives in environments like X." The summary must read the same regardless of which company the resume is being tailored for. Company/team context may only be used to decide WHICH of the candidate's real skills to emphasize — never written into the summary text itself.
 ${linkedinUrl ? `- Include this LinkedIn URL in the contact line: ${linkedinUrl}` : "- Only include contact details present in the original resume."}
 - Never invent employers, titles, dates, degrees, or skills the candidate doesn't have.
-- ATS OPTIMIZATION (critical): weave the KEY JD KEYWORDS above into the resume using the JD's EXACT wording (e.g. "Kubernetes" not "K8s"). Cover AS MANY as are plausibly truthful — aim for 85%+ of the listed keywords appearing verbatim across the skills table, summary, and experience bullets.
+- ATS OPTIMIZATION (critical): weave the KEY JD KEYWORDS above into the resume using the JD's EXACT wording (e.g. "Kubernetes" not "K8s"), in the skills table and experience bullets only. Cover AS MANY as are plausibly truthful — aim for 85%+ of the listed keywords appearing verbatim across the skills table and experience bullets (not the summary).
 - Add an explicit "Technical Skills" / "Core Competencies" skills category that lists the JD's core technologies, tools, and methodologies the candidate has — this is the highest-impact place for ATS keywords, so include every relevant keyword there.
 - Mirror the JD's key responsibilities: ensure each major responsibility named in the JD is reflected by at least one matching bullet in the candidate's experience (truthfully).
 - Group skills into logical categories for a clean table.
@@ -94,7 +95,8 @@ Instructions:
 2. Naturally incorporate keywords/technologies from the JD that the candidate genuinely has.
 3. Never invent experience, employers, dates, or credentials.
 4. Keep a clean structure: a short summary, skills, experience (with bullet points), education.
-5. Return ONLY the finished resume as plain text. No commentary, no markdown fences.
+5. In the summary specifically: describe the candidate only, never the employer. Do not name the company, team, or product, and avoid phrases like "ideal for" or "great fit for this team." The summary should read the same regardless of which company it's tailored for.
+6. Return ONLY the finished resume as plain text. No commentary, no markdown fences.
 
 Tailored Resume:`,
       },
@@ -131,7 +133,8 @@ Instructions:
 2. Use keywords from the job description naturally
 3. Keep all facts truthful - do not fabricate experience
 4. Maintain professional formatting
-5. Return ONLY the tailored resume content, no explanations
+5. In the summary section specifically: describe the candidate only. Never mention "${company}", the team, or product name, and avoid phrases like "ideal for" or "perfect fit for this role." The summary should read the same regardless of which company it's tailored for.
+6. Return ONLY the tailored resume content, no explanations
 
 Tailored Resume:`,
       },

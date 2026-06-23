@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Upload, FileText, Save, Loader2, Trash2, Clock } from "lucide-react";
 import { AtsPie } from "@/components/jobs/AtsPie";
 import { JdTailor } from "@/components/resume/JdTailor";
+import { SavedResumesTable } from "@/components/resume/SavedResumesTable";
 
 function formatTimestamp(iso: string): string {
   return new Date(iso).toLocaleString(undefined, {
@@ -26,6 +27,7 @@ export default function ResumePage() {
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [hasResume, setHasResume] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [refreshSignal, setRefreshSignal] = useState(0);
 
   async function loadResume() {
     const data = await fetch("/api/resume").then((r) => r.json());
@@ -72,6 +74,7 @@ export default function ResumePage() {
     if (data?.fileName) setFileName(data.fileName);
     setHasResume(true);
     setSelectedFile(null);
+    setRefreshSignal((s) => s + 1); // refresh the saved-resumes table
 
     setSaving(false);
     setSaved(true);
@@ -173,7 +176,10 @@ export default function ResumePage() {
       </div>
 
       {/* AI: tailor resume to a pasted JD */}
-      <JdTailor hasResume={hasResume} onSaved={loadResume} />
+      <JdTailor hasResume={hasResume} onSaved={() => { loadResume(); setRefreshSignal((s) => s + 1); }} />
+
+      {/* Saved resumes history */}
+      <SavedResumesTable refreshSignal={refreshSignal} />
     </div>
   );
 }

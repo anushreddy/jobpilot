@@ -27,6 +27,7 @@ export function JobDetailTailor({
 }: Props) {
   const router = useRouter();
   const [tailoredDoc, setTailoredDoc] = useState<TailoredResumeDoc | null>(null);
+  const [savedStorageKey, setSavedStorageKey] = useState<string | null>(null);
   const [applied, setApplied] = useState(alreadyApplied);
   const [applying, setApplying] = useState<"regular" | "tailored" | null>(null);
 
@@ -51,6 +52,8 @@ export function JobDetailTailor({
           jobId,
           tailored,
           tailoredContent: tailored && tailoredDoc ? resumeDocToText(tailoredDoc) : undefined,
+          tailoredDoc: tailored ? tailoredDoc : undefined,
+          resumeStorageKey: tailored ? savedStorageKey : undefined,
         }),
       });
       if (res.ok || res.status === 409) {
@@ -70,7 +73,7 @@ export function JobDetailTailor({
         compact
         jobSkills={skills}
         jobTitle={jobTitle}
-        onSaved={() => router.refresh()}
+        onSaved={(key) => { if (key) setSavedStorageKey(key); router.refresh(); }}
         onDocChange={setTailoredDoc}
       />
 

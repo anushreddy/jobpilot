@@ -74,6 +74,18 @@ export async function PUT(req: Request) {
     },
   });
 
+  // Add to the saved-resumes history shown on the Resume page.
+  const savedName = `${doc.title || doc.name || "Tailored Resume"} (Tailored)`;
+  await db.savedResume.create({
+    data: {
+      userId: session.user.id,
+      name: savedName,
+      kind: "tailored",
+      storageKey: key,
+      atsScore: scoreResumeQuality(text),
+    },
+  });
+
   // 2. Make this the user's CURRENT resume so it shows as latest on the page.
   const fileName = `tailored-${new Date().toISOString().slice(0, 10)}.txt`;
   const resumeKey = originalResumeKey(session.user.id, fileName);

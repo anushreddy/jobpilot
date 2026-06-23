@@ -27,13 +27,9 @@ export async function POST(req: Request) {
     const buffer = Buffer.from(await file.arrayBuffer());
     fileName = file.name;
 
-    // Overwrite: remove the previously stored object so it doesn't orphan.
-    const existing = await db.resume.findUnique({ where: { userId: session.user.id } });
-    if (existing?.filePath) {
-      await storage.delete(existing.filePath);
-    }
-
-    // Store the original under a scalable, per-user key.
+    // Store the original under a scalable, per-user key. We keep previous
+    // originals (they remain in the saved-resumes history below), so we do NOT
+    // delete the old file here.
     const key = originalResumeKey(session.user.id, file.name);
     await storage.put(key, buffer, file.type || "application/octet-stream");
     filePath = key;
@@ -50,6 +46,13 @@ export async function POST(req: Request) {
     update: { fileName, content, filePath, atsScore },
     create: { userId: session.user.id, fileName, content, filePath, atsScore },
   });
+
+  // Record this upload in the saved-resumes history (originals + replacements).
+  if (filePath) {
+    await db.savedResume.create({
+      data: { userId: session.user.id, name: fileName, kind: "original", storageKey: filePath, atsScore },
+    });
+  }
 
   return NextResponse.json(resume);
 }

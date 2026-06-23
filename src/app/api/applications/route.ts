@@ -71,7 +71,7 @@ export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { jobId, coverLetter, tailored, tailoredContent } = await req.json();
+  const { jobId, coverLetter, tailored, tailoredContent, tailoredDoc, resumeStorageKey } = await req.json();
 
   const existing = await db.application.findUnique({
     where: { userId_jobId: { userId: session.user.id, jobId } },
@@ -108,6 +108,11 @@ export async function POST(req: Request) {
       resumeUsed: scoringText || null,
       resumeLabel: tailored && tailoredContent ? "Tailored" : "Regular",
       resumeFileName: resume?.fileName ?? null,
+      // Structured doc lets us re-render the formatted PDF for tailored resumes.
+      resumeDoc: tailored && tailoredDoc ? tailoredDoc : undefined,
+      // Storage key: tailored → saved JSON (if any); regular → the ORIGINAL
+      // uploaded file so its native PDF/DOCX format is preserved on download.
+      resumeStorageKey: tailored ? (resumeStorageKey ?? null) : (resume?.filePath ?? null),
     },
     include: { job: true },
   });
