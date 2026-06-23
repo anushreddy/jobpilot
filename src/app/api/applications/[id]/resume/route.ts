@@ -47,7 +47,7 @@ export async function GET(_req: Request, context: RouteContext) {
         const name = app.resumeFileName || "resume";
         const ext = name.split(".").pop()?.toLowerCase() ?? "";
         const type = MIME[ext] ?? "application/octet-stream";
-        return new NextResponse(new Uint8Array(bytes), {
+        return new NextResponse(new Blob([new Uint8Array(bytes)], { type }), {
           headers: {
             "Content-Type": type,
             "Content-Disposition": `attachment; filename="${safe}-${name}"`,
@@ -87,7 +87,7 @@ export async function GET(_req: Request, context: RouteContext) {
 
   if (doc) {
     const pdf = await buildResumePdf(doc);
-    return new NextResponse(pdf, {
+    return new NextResponse(new Blob([pdf], { type: "application/pdf" }), {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="${safe}-tailored.pdf"`,

@@ -43,7 +43,7 @@ export async function GET(_req: Request, context: RouteContext) {
     try {
       const doc = JSON.parse(bytes.toString("utf-8")) as TailoredResumeDoc;
       const pdf = await buildResumePdf(doc);
-      return new NextResponse(pdf, {
+      return new NextResponse(new Blob([pdf], { type: "application/pdf" }), {
         headers: {
           "Content-Type": "application/pdf",
           "Content-Disposition": `attachment; filename="${safe}.pdf"`,
@@ -57,7 +57,7 @@ export async function GET(_req: Request, context: RouteContext) {
   // Original (or fallback): stream the stored file with its native type.
   const ext = saved.name.split(".").pop()?.toLowerCase() ?? "";
   const type = MIME[ext] ?? "application/octet-stream";
-  return new NextResponse(new Uint8Array(bytes), {
+  return new NextResponse(new Blob([new Uint8Array(bytes)], { type }), {
     headers: {
       "Content-Type": type,
       "Content-Disposition": `attachment; filename="${saved.name}"`,
