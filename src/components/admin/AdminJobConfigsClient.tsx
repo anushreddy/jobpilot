@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import {
-  Search, Plus, Trash2, Loader2, ChevronLeft, ChevronRight, X,
+  Search, Plus, Trash2, Pencil, Loader2, ChevronLeft, ChevronRight, X,
   MapPin, Globe, Power,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -37,6 +37,7 @@ export function AdminJobConfigsClient() {
   const [statusFilter, setStatusFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
+  const [editing, setEditing] = useState<JobConfig | null>(null);
 
   const fetchConfigs = useCallback(async () => {
     setLoading(true);
@@ -202,12 +203,20 @@ export function AdminJobConfigsClient() {
                     </button>
                   </td>
                   <td className="px-4 py-3">
-                    <button
-                      onClick={() => remove(c)}
-                      className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-destructive/10 rounded transition"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setEditing(c)}
+                        className="p-1.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-500/10 rounded transition"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => remove(c)}
+                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-destructive/10 rounded transition"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -240,25 +249,42 @@ export function AdminJobConfigsClient() {
       </div>
 
       {showAdd && (
-        <AddRoleModal
+        <RoleModal
           onClose={() => setShowAdd(false)}
-          onCreated={() => { setShowAdd(false); setPage(1); fetchConfigs(); }}
+          onSaved={() => { setShowAdd(false); setPage(1); fetchConfigs(); }}
+        />
+      )}
+
+      {editing && (
+        <RoleModal
+          config={editing}
+          onClose={() => setEditing(null)}
+          onSaved={() => { setEditing(null); fetchConfigs(); }}
         />
       )}
     </div>
   );
 }
 
-function AddRoleModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+function RoleModal({
+  config,
+  onClose,
+  onSaved,
+}: {
+  config?: JobConfig;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const isEdit = !!config;
   const [form, setForm] = useState({
-    roleTitle: "",
-    roleAliases: "",
-    city: "",
-    state: "",
-    country: "US",
-    isRemoteSearch: false,
-    priority: 5,
-    isActive: true,
+    roleTitle: config?.roleTitle ?? "",
+    roleAliases: config?.roleAliases.join(", ") ?? "",
+    city: config?.city ?? "",
+    state: config?.state ?? "",
+    country: config?.country ?? "US",
+    isRemoteSearch: config?.isRemoteSearch ?? false,
+    priority: config?.priority ?? 5,
+    isActive: config?.isActive ?? true,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -277,15 +303,18 @@ function AddRoleModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
       priority: Number(form.priority),
       isActive: form.isActive,
     };
-    const res = await fetch("/api/admin/job-configs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    const res = await fetch(
+      isEdit ? `/api/admin/job-configs/${config.id}` : "/api/admin/job-configs",
+      {
+        method: isEdit ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }
+    );
     const data = await res.json();
     setLoading(false);
     if (!res.ok) { setError(data.error ?? "Failed"); return; }
-    onCreated();
+    onSaved();
   }
 
   const inputCls =
@@ -295,7 +324,9 @@ function AddRoleModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div className="bg-white dark:bg-card rounded-xl w-full max-w-md p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-slate-800 dark:text-foreground">Add Search Role</h3>
+          <h3 className="text-lg font-semibold text-slate-800 dark:text-foreground">
+            {isEdit ? "Edit Search Role" : "Add Search Role"}
+          </h3>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
         </div>
         <form onSubmit={submit} className="space-y-3">
@@ -374,7 +405,7 @@ function AddRoleModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
             className="w-full flex items-center justify-center gap-2 bg-purple-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-purple-700 transition disabled:opacity-50"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-            Create Role
+            {isEdit ? "Save Changes" : "Create Role"}
           </button>
         </form>
       </div>
