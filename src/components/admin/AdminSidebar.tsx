@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, Briefcase, FileText, ArrowLeft, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Users, Briefcase, ArrowLeft, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const nav = [
   { href: "/admin", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/admin/users", icon: Users, label: "Users" },
+  { href: "/admin/job-configs", icon: Briefcase, label: "Job Roles" },
 ];
 
 export function AdminSidebar() {

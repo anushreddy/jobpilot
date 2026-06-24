@@ -250,6 +250,25 @@ model LinkedAccount {
   @@map("linked_accounts")
 }
 
+model JobSearchConfig {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  roleTitle       String    @map("role_title") @db.VarChar(255)
+  roleAliases     String[]  @map("role_aliases")
+  city            String?   @db.VarChar(255)
+  state           String?   @db.VarChar(100)
+  country         String    @default("US") @db.VarChar(2)
+  isRemoteSearch  Boolean   @default(false) @map("is_remote_search")
+  isActive        Boolean   @default(true) @map("is_active")
+  priority        Int       @default(5)
+  lastFetchedAt   DateTime? @map("last_fetched_at")
+  lastFetchStatus String?   @map("last_fetch_status") @db.VarChar(20)
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  @@index([isActive, country], map: "idx_search_configs_active")
+  @@index([priority, lastFetchedAt], map: "idx_search_configs_priority")
+  @@map("job_search_configs")
+}
+
 enum Plan {
   FREE
   PRO
