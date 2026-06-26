@@ -3,6 +3,7 @@
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/toaster";
+import { IdleTimeout } from "@/components/IdleTimeout";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -12,7 +13,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
       enableSystem={false}
       themes={["light", "dark"]}
     >
-      <SessionProvider>
+      <SessionProvider refetchOnWindowFocus>
+        <IdleTimeout />
         {children}
         <Toaster />
       </SessionProvider>

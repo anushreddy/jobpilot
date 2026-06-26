@@ -8,7 +8,11 @@ import { db } from "./db";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db) as never,
-  session: { strategy: "jwt" },
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 60, // 30 minutes — token expires after inactivity
+    updateAge: 5 * 60, // refresh the token at most every 5 minutes of activity
+  },
   pages: {
     signIn: "/login",
   },

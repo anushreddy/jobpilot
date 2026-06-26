@@ -3,9 +3,11 @@
 import { useState, useCallback } from "react";
 import { JobCard } from "./JobCard";
 import { JobFilters } from "./JobFilters";
-import { LayoutGrid, List, Search } from "lucide-react";
+import { LayoutGrid, List, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Job } from "@/types";
+
+const PAGE_SIZE = 20;
 
 interface Props {
   initialJobs: (Job & { matchScore: number | null })[];
@@ -20,20 +22,36 @@ export function JobsClient({ initialJobs, total, isPro }: Props) {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [sort, setSort] = useState("Best Match");
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(Math.max(1, Math.ceil(total / PAGE_SIZE)));
+  const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
 
-  const fetchJobs = useCallback(async (filters: Record<string, string>) => {
+  // Runs a query for a given filter set + page, and keeps everything in sync.
+  const runQuery = useCallback(async (filters: Record<string, string>, nextPage: number) => {
     setLoading(true);
-    const params = new URLSearchParams(filters);
+    const params = new URLSearchParams({ ...filters, page: String(nextPage) });
     const res = await fetch(`/api/jobs?${params}`);
     const data = await res.json();
     setJobs(data.jobs);
     setCount(data.total);
+    setPages(Math.max(1, data.pages ?? 1));
+    setPage(data.page ?? nextPage);
+    setActiveFilters(filters);
     setLoading(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
+
+  // Filters/search reset to page 1.
+  const fetchJobs = useCallback((filters: Record<string, string>) => runQuery(filters, 1), [runQuery]);
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    fetchJobs({ search });
+    runQuery({ ...activeFilters, search }, 1);
+  }
+
+  function goToPage(p: number) {
+    if (p < 1 || p > pages || p === page) return;
+    runQuery(activeFilters, p);
   }
 
   return (
@@ -109,6 +127,32 @@ export function JobsClient({ initialJobs, total, isPro }: Props) {
             {jobs.map((job) => (
               <JobCard key={job.id} job={job} isPro={isPro} />
             ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!loading && jobs.length > 0 && pages > 1 && (
+          <div className="flex items-center justify-between mt-5">
+            <p className="text-xs text-muted-foreground">
+              Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, count)} of {count.toLocaleString()}
+            </p>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => goToPage(page - 1)}
+                disabled={page <= 1}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border text-sm text-foreground hover:bg-secondary transition disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft className="w-4 h-4" /> Prev
+              </button>
+              <span className="text-xs text-muted-foreground px-2">Page {page} of {pages}</span>
+              <button
+                onClick={() => goToPage(page + 1)}
+                disabled={page >= pages}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border text-sm text-foreground hover:bg-secondary transition disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Next <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         )}
       </div>

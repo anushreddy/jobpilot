@@ -7,6 +7,7 @@ import { scoreResumeForJob } from "@/lib/ats";
 import { formatSalary, timeAgo, platformColor } from "@/lib/utils";
 import { AtsPie } from "@/components/jobs/AtsPie";
 import { JobDetailTailor } from "@/components/jobs/JobDetailTailor";
+import { OutreachGenerator } from "@/components/jobs/OutreachGenerator";
 import { ArrowLeft, MapPin, Building2, ExternalLink } from "lucide-react";
 
 const PLATFORM_LABEL: Record<string, string> = {
@@ -128,9 +129,9 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
           </div>
         </div>
 
-        {/* Right: tailor */}
+        {/* Right: tailor + outreach */}
         <div className="lg:col-span-2">
-          <div className="sticky top-20">
+          <div className="sticky top-20 space-y-4">
             <JobDetailTailor
               jobId={job.id}
               hasResume={Boolean(resume?.content)}
@@ -140,6 +141,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
               jobDescription={job.description}
               skills={job.skills}
             />
+            <OutreachGenerator jobId={job.id} hasResume={Boolean(resume?.content)} />
           </div>
         </div>
       </div>

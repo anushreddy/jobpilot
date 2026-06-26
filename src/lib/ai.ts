@@ -178,6 +178,53 @@ Return ONLY the cover letter text, no subject line or formatting instructions.`,
   return (message.content[0] as { text: string }).text;
 }
 
+/**
+ * Generates a short outreach message — a LinkedIn DM/connection note or a
+ * recruiter email — for a specific job. Returns an optional subject (email
+ * only) and the message body.
+ */
+export async function generateOutreachMessage(
+  channel: "linkedin" | "email",
+  resumeContent: string,
+  jobTitle: string,
+  company: string,
+  jobDescription: string,
+  userName: string
+): Promise<{ subject?: string; body: string }> {
+  const instructions =
+    channel === "linkedin"
+      ? `Write a concise LinkedIn message (a connection note / DM to a recruiter or hiring manager) under 600 characters. Friendly, professional, specific. No subject line. Reference 1-2 concrete strengths relevant to the role.`
+      : `Write a short outreach EMAIL to a recruiter/hiring manager. Return a subject line on the first line prefixed with "Subject: ", then a blank line, then a 3-4 sentence email body. Professional and specific, reference 1-2 concrete strengths.`;
+
+  const message = await anthropic.messages.create({
+    model: "claude-sonnet-4-6",
+    max_tokens: 700,
+    messages: [
+      {
+        role: "user",
+        content: `${userName} is reaching out about the ${jobTitle} role at ${company}.
+
+JOB DESCRIPTION:
+${jobDescription.slice(0, 1500)}
+
+CANDIDATE RESUME:
+${resumeContent.slice(0, 2000)}
+
+${instructions}
+Use the candidate's real experience only — never invent facts. Sign off as ${userName}. Return ONLY the message text.`,
+      },
+    ],
+  });
+
+  const text = (message.content[0] as { text: string }).text.trim();
+
+  if (channel === "email") {
+    const m = text.match(/^subject:\s*(.+?)\n+([\s\S]*)$/i);
+    if (m) return { subject: m[1].trim(), body: m[2].trim() };
+  }
+  return { body: text };
+}
+
 export async function calculateMatchScore(
   resumeContent: string,
   jobDescription: string,
