@@ -8,6 +8,7 @@ import { formatSalary, timeAgo, platformColor } from "@/lib/utils";
 import { AtsPie } from "@/components/jobs/AtsPie";
 import { JobDetailTailor } from "@/components/jobs/JobDetailTailor";
 import { OutreachGenerator } from "@/components/jobs/OutreachGenerator";
+import { EditJobButton } from "@/components/jobs/EditJobButton";
 import { ArrowLeft, MapPin, Building2, ExternalLink } from "lucide-react";
 
 const PLATFORM_LABEL: Record<string, string> = {
@@ -87,14 +88,28 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                 {PLATFORM_LABEL[job.platform]}
               </span>
               <span className="text-xs text-muted-foreground">Posted {timeAgo(job.postedAt)}</span>
-              <a
-                href={job.platformUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-xs font-medium hover:bg-primary/80 transition"
-              >
-                Apply on {PLATFORM_LABEL[job.platform]} <ExternalLink className="w-3.5 h-3.5" />
-              </a>
+              <div className="ml-auto flex items-center gap-2">
+                <EditJobButton
+                  jobId={job.id}
+                  job={{
+                    title: job.title,
+                    company: job.company,
+                    location: job.location,
+                    locationType: job.locationType,
+                    salary: job.salary,
+                    description: job.description,
+                    skills: job.skills,
+                  }}
+                />
+                <a
+                  href={job.platformUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-xs font-medium hover:bg-primary/80 transition"
+                >
+                  Apply on {PLATFORM_LABEL[job.platform]} <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
             </div>
           </div>
 

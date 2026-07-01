@@ -52,3 +52,30 @@ export async function sendVerificationEmail(to: string, code: string): Promise<v
 export function generateCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
+
+export async function sendPasswordResetEmail(to: string, link: string): Promise<void> {
+  if (!transporter) {
+    console.log(`\n🔑  [DEV] Password reset link for ${to}:\n${link}\n`);
+    return;
+  }
+
+  await transporter.sendMail({
+    from: FROM,
+    to,
+    subject: "Reset your JobPilot password",
+    text: `Reset your JobPilot password using this link (valid for 24 hours): ${link}`,
+    html: `
+      <div style="font-family: -apple-system, system-ui, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:24px;">
+          <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#a855f7);"></div>
+          <span style="font-size:20px;font-weight:700;color:#111;">JobPilot</span>
+        </div>
+        <h1 style="font-size:20px;color:#111;margin:0 0 8px;">Reset your password</h1>
+        <p style="color:#555;font-size:14px;margin:0 0 24px;">Click the button below to set a new password. This link is valid for 24 hours.</p>
+        <a href="${link}" style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 24px;border-radius:10px;">Reset password</a>
+        <p style="color:#999;font-size:12px;margin:24px 0 0;">If you didn't request this, you can safely ignore this email — your password won't change.</p>
+        <p style="color:#bbb;font-size:11px;margin:12px 0 0;word-break:break-all;">${link}</p>
+      </div>
+    `,
+  });
+}

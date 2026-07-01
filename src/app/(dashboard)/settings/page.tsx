@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { Save, Loader2, Plus, X, Lock, Zap, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LinkedAccountsTab } from "@/components/settings/LinkedAccountsTab";
+import { ChangePasswordCard } from "@/components/settings/ChangePasswordCard";
 
 const TABS = ["Profile", "Preferences", "Auto Apply", "Linked Accounts", "Billing"] as const;
 type Tab = typeof TABS[number];
@@ -133,29 +134,33 @@ export default function SettingsPage() {
 
       {/* Profile tab */}
       {activeTab === "Profile" && (
-        <div className="glass rounded-xl p-5 space-y-4">
-          <h2 className="text-sm font-semibold text-foreground">Profile Information</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1.5">Full name</label>
-              <input
-                value={profile.name}
-                onChange={(e) => setProfile((p) => ({ ...p, name: e.target.value }))}
-                className="w-full bg-secondary/50 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-              />
+        <div className="space-y-4">
+          <div className="glass rounded-xl p-5 space-y-4">
+            <h2 className="text-sm font-semibold text-foreground">Profile Information</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1.5">Full name</label>
+                <input
+                  value={profile.name}
+                  onChange={(e) => setProfile((p) => ({ ...p, name: e.target.value }))}
+                  className="w-full bg-secondary/50 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1.5">Email</label>
+                <input
+                  value={profile.email}
+                  disabled
+                  className="w-full bg-secondary/50 border border-border rounded-lg px-3 py-2 text-sm text-muted-foreground cursor-not-allowed"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1.5">Email</label>
-              <input
-                value={profile.email}
-                disabled
-                className="w-full bg-secondary/50 border border-border rounded-lg px-3 py-2 text-sm text-muted-foreground cursor-not-allowed"
-              />
-            </div>
+            <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/80 transition">
+              <Save className="w-4 h-4" /> Save Profile
+            </button>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/80 transition">
-            <Save className="w-4 h-4" /> Save Profile
-          </button>
+
+          <ChangePasswordCard />
         </div>
       )}
 

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { JobCard } from "./JobCard";
 import { JobFilters } from "./JobFilters";
-import { LayoutGrid, List, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { LayoutGrid, List, Search, ChevronLeft, ChevronRight, Plus, Loader2, X, Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Job } from "@/types";
 
@@ -16,6 +17,8 @@ interface Props {
 }
 
 export function JobsClient({ initialJobs, total, isPro }: Props) {
+  const router = useRouter();
+  const [showAdd, setShowAdd] = useState(false);
   const [jobs, setJobs] = useState(initialJobs);
   const [count, setCount] = useState(total);
   const [view, setView] = useState<"list" | "grid">("list");
@@ -77,6 +80,12 @@ export function JobsClient({ initialJobs, total, isPro }: Props) {
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowAdd(true)}
+              className="flex items-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/80 transition"
+            >
+              <Plus className="w-4 h-4" /> Add Job
+            </button>
             <span className="text-sm text-muted-foreground">
               <span className="text-foreground font-medium">{count.toLocaleString()}</span> jobs
             </span>
@@ -155,6 +164,78 @@ export function JobsClient({ initialJobs, total, isPro }: Props) {
             </div>
           </div>
         )}
+      </div>
+
+      {showAdd && (
+        <AddJobModal
+          onClose={() => setShowAdd(false)}
+          onCreated={(id) => router.push(`/jobs/${id}`)}
+        />
+      )}
+    </div>
+  );
+}
+
+function AddJobModal({ onClose, onCreated }: { onClose: () => void; onCreated: (id: string) => void }) {
+  const [url, setUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/jobs/manual", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Could not add this job");
+        setLoading(false);
+        return;
+      }
+      onCreated(data.id);
+    } catch {
+      setError("Something went wrong. Please try again.");
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div className="bg-card border border-border rounded-xl w-full max-w-md p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="text-lg font-semibold text-foreground">Add a Job</h3>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X className="w-5 h-5" /></button>
+        </div>
+        <p className="text-xs text-muted-foreground mb-4">
+          Paste a job posting URL — we&apos;ll pull in the title and description.
+        </p>
+        <form onSubmit={submit} className="space-y-3">
+          <div className="relative">
+            <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              type="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://www.linkedin.com/jobs/view/..."
+              required
+              className="w-full bg-secondary/50 border border-border rounded-lg pl-9 pr-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+          </div>
+          {error && <p className="text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">{error}</p>}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground py-2.5 rounded-lg text-sm font-medium hover:bg-primary/80 transition disabled:opacity-50"
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+            {loading ? "Fetching job..." : "Add & Open"}
+          </button>
+        </form>
       </div>
     </div>
   );
