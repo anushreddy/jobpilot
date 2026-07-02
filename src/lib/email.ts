@@ -18,7 +18,7 @@ const transporter = hasSmtp
     })
   : null;
 
-const FROM = process.env.EMAIL_FROM || process.env.EMAIL_SERVER_USER || "JobPilot <no-reply@jobpilot.app>";
+const FROM = process.env.EMAIL_FROM || process.env.EMAIL_SERVER_USER || "Intervo <no-reply@intervo.io>";
 
 export async function sendVerificationEmail(to: string, code: string): Promise<void> {
   if (!transporter) {
@@ -29,13 +29,13 @@ export async function sendVerificationEmail(to: string, code: string): Promise<v
   await transporter.sendMail({
     from: FROM,
     to,
-    subject: "Your JobPilot verification code",
-    text: `Your JobPilot verification code is ${code}. It expires in 10 minutes.`,
+    subject: "Your Intervo verification code",
+    text: `Your Intervo verification code is ${code}. It expires in 10 minutes.`,
     html: `
       <div style="font-family: -apple-system, system-ui, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:24px;">
           <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#a855f7);"></div>
-          <span style="font-size:20px;font-weight:700;color:#111;">JobPilot</span>
+          <span style="font-size:20px;font-weight:700;color:#111;">Intervo</span>
         </div>
         <h1 style="font-size:20px;color:#111;margin:0 0 8px;">Verify your email</h1>
         <p style="color:#555;font-size:14px;margin:0 0 24px;">Enter this code to finish creating your account:</p>
@@ -43,6 +43,32 @@ export async function sendVerificationEmail(to: string, code: string): Promise<v
           ${code}
         </div>
         <p style="color:#999;font-size:12px;margin:24px 0 0;">This code expires in 10 minutes. If you didn't request it, you can ignore this email.</p>
+      </div>
+    `,
+  });
+}
+
+export async function sendContactEmail(name: string, email: string, message: string): Promise<void> {
+  const to = process.env.CONTACT_EMAIL || process.env.EMAIL_SERVER_USER;
+
+  if (!transporter || !to) {
+    console.log(`\n✉️  [DEV] Contact form submission:\nFrom: ${name} <${email}>\n${message}\n`);
+    return;
+  }
+
+  await transporter.sendMail({
+    from: FROM,
+    to,
+    replyTo: email,
+    subject: `Intervo contact form — ${name}`,
+    text: `Name: ${name}\nEmail: ${email}\n\n${message}`,
+    html: `
+      <div style="font-family:-apple-system,system-ui,sans-serif;max-width:520px;margin:0 auto;padding:24px;">
+        <h2 style="margin:0 0 12px;color:#111;">New contact message</h2>
+        <p style="margin:0 0 4px;color:#555;"><strong>Name:</strong> ${name}</p>
+        <p style="margin:0 0 12px;color:#555;"><strong>Email:</strong> ${email}</p>
+        <div style="background:#f5f3ff;border-radius:12px;padding:16px;color:#333;white-space:pre-wrap;">${message
+          .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
       </div>
     `,
   });
@@ -62,13 +88,13 @@ export async function sendPasswordResetEmail(to: string, link: string): Promise<
   await transporter.sendMail({
     from: FROM,
     to,
-    subject: "Reset your JobPilot password",
-    text: `Reset your JobPilot password using this link (valid for 24 hours): ${link}`,
+    subject: "Reset your Intervo password",
+    text: `Reset your Intervo password using this link (valid for 24 hours): ${link}`,
     html: `
       <div style="font-family: -apple-system, system-ui, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:24px;">
           <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#a855f7);"></div>
-          <span style="font-size:20px;font-weight:700;color:#111;">JobPilot</span>
+          <span style="font-size:20px;font-weight:700;color:#111;">Intervo</span>
         </div>
         <h1 style="font-size:20px;color:#111;margin:0 0 8px;">Reset your password</h1>
         <p style="color:#555;font-size:14px;margin:0 0 24px;">Click the button below to set a new password. This link is valid for 24 hours.</p>

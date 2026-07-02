@@ -42,7 +42,7 @@ function ResetForm() {
         <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center">
           <Zap className="w-5 h-5 text-white" />
         </div>
-        <span className="text-xl font-bold text-foreground">JobPilot</span>
+        <span className="text-xl font-bold text-foreground">Intervo</span>
       </div>
 
       {done ? (

@@ -11,6 +11,7 @@ import {
   Bell,
   MessageSquare,
   Settings,
+  Mail,
   Zap,
   ChevronUp,
 } from "lucide-react";
@@ -26,6 +27,7 @@ const navItems = [
   { href: "/alerts", icon: Bell, label: "Alerts" },
   { href: "/messages", icon: MessageSquare, label: "Messages" },
   { href: "/settings", icon: Settings, label: "Settings" },
+  { href: "/contact", icon: Mail, label: "Contact Us" },
 ];
 
 export function Sidebar() {
@@ -41,7 +43,7 @@ export function Sidebar() {
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center flex-shrink-0">
             <Zap className="w-4 h-4 text-white" />
           </div>
-          <span className="font-bold text-foreground text-lg">JobPilot</span>
+          <span className="font-bold text-foreground text-lg">Intervo</span>
         </Link>
       </div>
 

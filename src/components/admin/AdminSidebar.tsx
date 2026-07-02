@@ -19,7 +19,7 @@ export function AdminSidebar() {
       {/* Brand */}
       <div className="h-14 flex items-center gap-2 px-4 border-b border-white/10">
         <ShieldCheck className="w-6 h-6 text-purple-400" />
-        <span className="font-semibold text-white tracking-wide">JobPilot Admin</span>
+        <span className="font-semibold text-white tracking-wide">Intervo Admin</span>
       </div>
 
       {/* Nav */}

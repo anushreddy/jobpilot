@@ -15,7 +15,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <AdminTopbar name={session.user.name ?? "Admin"} />
         <main className="flex-1 p-6 overflow-auto">{children}</main>
         <footer className="px-6 py-3 text-xs text-slate-400 border-t border-slate-200 dark:border-border">
-          JobPilot Admin · v1.0
+          Intervo Admin · v1.0
         </footer>
       </div>
     </div>

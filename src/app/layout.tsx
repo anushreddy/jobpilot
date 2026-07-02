@@ -6,7 +6,7 @@ import { Providers } from "@/components/providers";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "JobPilot — AI-Powered Job Search",
+  title: "Intervo — AI-Powered Job Search",
   description: "Accelerate your job search with AI-powered matching, auto-apply, and resume tailoring.",
 };
 

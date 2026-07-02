@@ -1,7 +1,7 @@
 import { ulid } from "ulid";
 
 /**
- * S3 / object-storage key layout for JobPilot.
+ * S3 / object-storage key layout for Intervo.
  *
  * Design goals:
  *  - High-cardinality partitioning by userId so reads/writes spread evenly
