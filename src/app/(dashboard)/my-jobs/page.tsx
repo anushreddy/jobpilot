@@ -115,8 +115,8 @@ export default function MyJobsPage() {
       )}
 
       {/* Table */}
-      <div className="glass rounded-xl overflow-hidden">
-        <table className="w-full">
+      <div className="glass rounded-xl overflow-x-auto">
+        <table className="w-full min-w-[760px]">
           <thead>
             <tr className="border-b border-border">
               <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Company</th>

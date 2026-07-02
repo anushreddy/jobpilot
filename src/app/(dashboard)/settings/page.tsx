@@ -114,13 +114,13 @@ export default function SettingsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-card rounded-xl p-1 border border-border">
+      <div className="flex gap-1 bg-card rounded-xl p-1 border border-border overflow-x-auto scrollbar-hide">
         {TABS.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={cn(
-              "flex-1 px-3 py-2 rounded-lg text-xs font-medium transition",
+              "flex-1 whitespace-nowrap px-3 py-2 rounded-lg text-xs font-medium transition",
               activeTab === tab ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"
             )}
           >

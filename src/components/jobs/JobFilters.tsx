@@ -43,8 +43,8 @@ export function JobFilters({ onFilter }: Props) {
   }
 
   return (
-    <div className="w-60 flex-shrink-0">
-      <div className="glass rounded-xl p-4 sticky top-20 space-y-5">
+    <div className="w-full lg:w-60 lg:flex-shrink-0">
+      <div className="glass rounded-xl p-4 lg:sticky lg:top-20 space-y-5">
         <div className="flex items-center justify-between">
           <p className="text-sm font-semibold text-foreground/80">FILTERS</p>
           <button

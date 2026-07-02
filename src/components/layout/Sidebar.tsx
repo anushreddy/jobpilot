@@ -30,13 +30,25 @@ const navItems = [
   { href: "/contact", icon: Mail, label: "Contact Us" },
 ];
 
-export function Sidebar() {
+export function Sidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean; onClose?: () => void }) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const isPro = session?.user.plan === "PRO" || session?.user.plan === "ENTERPRISE";
 
   return (
-    <aside className="w-[220px] min-h-screen flex flex-col bg-card border-r border-border">
+    <>
+      {/* Mobile backdrop */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={onClose} />
+      )}
+
+      <aside
+        className={cn(
+          "w-[220px] flex flex-col bg-card border-r border-border z-50",
+          "fixed inset-y-0 left-0 transition-transform duration-200 lg:static lg:translate-x-0 lg:min-h-screen",
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
       {/* Logo */}
       <div className="px-5 py-5 border-b border-border">
         <Link href="/dashboard" className="flex items-center gap-2.5">
@@ -55,6 +67,7 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onClose}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
                 active
@@ -102,6 +115,7 @@ export function Sidebar() {
           <ChevronUp className="w-3 h-3 text-muted-foreground" />
         </div>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

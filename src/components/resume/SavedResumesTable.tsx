@@ -48,7 +48,8 @@ export function SavedResumesTable({ refreshSignal }: { refreshSignal: number }) 
         <p className="text-xs text-muted-foreground mt-0.5">Uploaded originals and AI-tailored resumes saved to cloud</p>
       </div>
 
-      <table className="w-full">
+      <div className="overflow-x-auto">
+      <table className="w-full min-w-[560px]">
         <thead>
           <tr className="border-b border-border">
             <th className="text-left px-5 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Name</th>
@@ -124,6 +125,7 @@ export function SavedResumesTable({ refreshSignal }: { refreshSignal: number }) 
           )}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

@@ -11,11 +11,23 @@ const nav = [
   { href: "/admin/job-configs", icon: Briefcase, label: "Job Roles" },
 ];
 
-export function AdminSidebar() {
+export function AdminSidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean; onClose?: () => void }) {
   const pathname = usePathname();
 
   return (
-    <aside className="w-60 min-h-screen flex flex-col bg-[#343a40] text-slate-300 flex-shrink-0">
+    <>
+      {/* Mobile backdrop */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={onClose} />
+      )}
+
+      <aside
+        className={cn(
+          "w-60 flex flex-col bg-[#343a40] text-slate-300 flex-shrink-0 z-50",
+          "fixed inset-y-0 left-0 transition-transform duration-200 lg:static lg:translate-x-0 lg:min-h-screen",
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
       {/* Brand */}
       <div className="h-14 flex items-center gap-2 px-4 border-b border-white/10">
         <ShieldCheck className="w-6 h-6 text-purple-400" />
@@ -33,6 +45,7 @@ export function AdminSidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onClose}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded text-sm transition",
                 active ? "bg-purple-600 text-white" : "hover:bg-white/5 hover:text-white"
@@ -49,12 +62,14 @@ export function AdminSidebar() {
       <div className="p-2 border-t border-white/10">
         <Link
           href="/dashboard"
+          onClick={onClose}
           className="flex items-center gap-3 px-3 py-2.5 rounded text-sm hover:bg-white/5 hover:text-white transition"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to app
         </Link>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

@@ -96,8 +96,8 @@ export function AdminUsersClient() {
       </div>
 
       {/* Table */}
-      <div className="bg-white dark:bg-card rounded-lg border border-slate-200 dark:border-border overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-white dark:bg-card rounded-lg border border-slate-200 dark:border-border overflow-x-auto">
+        <table className="w-full text-sm min-w-[720px]">
           <thead className="bg-slate-50 dark:bg-secondary/40">
             <tr className="text-left text-xs uppercase tracking-wider text-slate-500 dark:text-muted-foreground">
               <th className="px-4 py-3 font-medium">User</th>

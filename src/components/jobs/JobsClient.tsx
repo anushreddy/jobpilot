@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { JobCard } from "./JobCard";
 import { JobFilters } from "./JobFilters";
-import { LayoutGrid, List, Search, ChevronLeft, ChevronRight, Plus, Loader2, X, Link2 } from "lucide-react";
+import { LayoutGrid, List, Search, ChevronLeft, ChevronRight, Plus, Loader2, X, Link2, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Job } from "@/types";
 
@@ -19,6 +19,7 @@ interface Props {
 export function JobsClient({ initialJobs, total, isPro }: Props) {
   const router = useRouter();
   const [showAdd, setShowAdd] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const [jobs, setJobs] = useState(initialJobs);
   const [count, setCount] = useState(total);
   const [view, setView] = useState<"list" | "grid">("list");
@@ -58,28 +59,36 @@ export function JobsClient({ initialJobs, total, isPro }: Props) {
   }
 
   return (
-    <div className="flex gap-4 max-w-[1400px] mx-auto">
-      {/* Filters sidebar */}
-      <JobFilters onFilter={fetchJobs} />
+    <div className="flex flex-col lg:flex-row gap-4 max-w-[1400px] mx-auto">
+      {/* Filters sidebar (collapsible on mobile) */}
+      <div className={cn(showFilters ? "block" : "hidden lg:block")}>
+        <JobFilters onFilter={fetchJobs} />
+      </div>
 
       {/* Main content */}
       <div className="flex-1 min-w-0">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <form onSubmit={handleSearch} className="relative">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowFilters((v) => !v)}
+              className="lg:hidden flex items-center gap-1.5 px-3 py-2 border border-border rounded-lg text-sm text-foreground hover:bg-secondary transition"
+            >
+              <SlidersHorizontal className="w-4 h-4" /> Filters
+            </button>
+            <form onSubmit={handleSearch} className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search jobs, companies, skills..."
-                className="bg-card border border-border rounded-lg pl-9 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 w-72"
+                className="bg-card border border-border rounded-lg pl-9 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 w-full sm:w-72"
               />
             </form>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             <button
               onClick={() => setShowAdd(true)}
               className="flex items-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/80 transition"
@@ -117,7 +126,7 @@ export function JobsClient({ initialJobs, total, isPro }: Props) {
 
         {/* Jobs */}
         {loading ? (
-          <div className={cn("gap-3", view === "grid" ? "grid grid-cols-2" : "flex flex-col")}>
+          <div className={cn("gap-3", view === "grid" ? "grid grid-cols-1 sm:grid-cols-2" : "flex flex-col")}>
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="glass rounded-xl p-4 animate-pulse h-32" />
             ))}
@@ -132,7 +141,7 @@ export function JobsClient({ initialJobs, total, isPro }: Props) {
             </p>
           </div>
         ) : (
-          <div className={cn("gap-3", view === "grid" ? "grid grid-cols-2" : "flex flex-col")}>
+          <div className={cn("gap-3", view === "grid" ? "grid grid-cols-1 sm:grid-cols-2" : "flex flex-col")}>
             {jobs.map((job) => (
               <JobCard key={job.id} job={job} isPro={isPro} />
             ))}

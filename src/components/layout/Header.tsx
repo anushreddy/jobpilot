@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import { Bell, LogOut, Settings, User, ShieldCheck } from "lucide-react";
+import { Bell, LogOut, Settings, User, ShieldCheck, Menu } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import {
   DropdownMenu,
@@ -20,20 +20,29 @@ function greeting() {
   return "Good evening";
 }
 
-export function Header() {
+export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
   const { data: session } = useSession();
   const name = session?.user.name?.split(" ")[0] ?? "there";
 
   return (
-    <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-background/80 backdrop-blur sticky top-0 z-30">
-      <div>
-        <h1 className="text-lg font-semibold text-foreground">
-          {greeting()}, {name} 👋
-        </h1>
-        <p className="text-xs text-muted-foreground">Let&apos;s accelerate your next opportunity.</p>
+    <header className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-border bg-background/80 backdrop-blur sticky top-0 z-30">
+      <div className="flex items-center gap-2 min-w-0">
+        <button
+          onClick={onMenuClick}
+          className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-secondary transition text-foreground"
+          aria-label="Open menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+        <div className="min-w-0">
+          <h1 className="text-base sm:text-lg font-semibold text-foreground truncate">
+            {greeting()}, {name} 👋
+          </h1>
+          <p className="text-xs text-muted-foreground hidden sm:block">Let&apos;s accelerate your next opportunity.</p>
+        </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         <ThemeToggle />
         <button className="relative p-2 rounded-lg hover:bg-secondary transition text-muted-foreground hover:text-foreground">
           <Bell className="w-5 h-5" />
