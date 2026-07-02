@@ -106,7 +106,12 @@ export default async function LandingPage() {
             </div>
             <span className="text-sm font-semibold">Intervo</span>
           </div>
-          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Intervo · intervo.io</p>
+          <div className="flex items-center gap-4">
+            <Link href="/privacy" className="text-xs text-muted-foreground hover:text-foreground transition">
+              Privacy
+            </Link>
+            <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Intervo · intervo.io</p>
+          </div>
         </div>
       </footer>
     </div>
